@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/portals - Liste des portails
+// GET /api/portals - Liste des portails avec pagination
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -13,24 +13,46 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = Math.min(
+      parseInt(searchParams.get("limit") || "20", 10),
+      100
+    );
+    const skip = (page - 1) * limit;
 
-    const portals = await prisma.portal.findMany({
-      where: {
-        tenantId: session.user.tenantId,
-        ...(status && { status: status as any }),
-      },
-      include: {
-        _count: {
-          select: {
-            pages: true,
-            news: true,
+    const where = {
+      tenantId: session.user.tenantId,
+      ...(status && { status: status as any }),
+    };
+
+    const [portals, total] = await Promise.all([
+      prisma.portal.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              pages: true,
+              news: true,
+            },
           },
         },
-      },
-      orderBy: [{ order: "asc" }, { name: "asc" }],
-    });
+        orderBy: [{ order: "asc" }, { name: "asc" }],
+        take: limit,
+        skip,
+      }),
+      prisma.portal.count({ where }),
+    ]);
 
-    return NextResponse.json({ portals });
+    return NextResponse.json({
+      portals,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: skip + portals.length < total,
+      },
+    });
   } catch (error) {
     console.error("Erreur GET /api/portals:", error);
     return NextResponse.json(

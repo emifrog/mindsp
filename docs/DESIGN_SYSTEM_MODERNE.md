@@ -225,7 +225,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-success text-success-foreground shadow-modern-lg">
+        <Card className="shadow-modern-lg bg-success text-success-foreground">
           <CardContent className="pt-6">
             <div className="text-3xl font-bold">89%</div>
             <p className="text-sm opacity-90">Taux de présence</p>

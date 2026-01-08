@@ -205,8 +205,39 @@ export class NotificationService {
    * Envoyer une notification push navigateur
    */
   static async sendPushNotification(notificationId: string) {
-    // TODO: Implémenter avec Web Push API ou service tiers
-    // Pour l'instant, marquer comme envoyée
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+        message: true,
+        icon: true,
+        linkUrl: true,
+      },
+    });
+
+    if (!notification) {
+      console.warn(`Notification ${notificationId} non trouvée`);
+      return;
+    }
+
+    // Import dynamique pour éviter les erreurs circulaires
+    const { WebPushService } = await import("@/lib/web-push-server");
+
+    // Envoyer la notification push
+    const result = await WebPushService.sendToUser(notification.userId, {
+      title: notification.title,
+      body: notification.message,
+      icon: notification.icon || "/icon-192x192.png",
+      badge: "/icon-96x96.png",
+      data: {
+        url: notification.linkUrl,
+        notificationId: notification.id,
+      },
+    });
+
+    // Marquer comme envoyée
     await prisma.notification.update({
       where: { id: notificationId },
       data: {
@@ -214,6 +245,8 @@ export class NotificationService {
         pushSentAt: new Date(),
       },
     });
+
+    return result;
   }
 
   /**

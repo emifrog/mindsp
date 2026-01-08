@@ -164,6 +164,9 @@ model User {
   personnelFile PersonnelFile?
   personnelDocumentsUploaded PersonnelDocument[] @relation("PersonnelDocumentUploader")
   
+  // Push Notifications
+  pushSubscriptions PushSubscription[]
+  
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])
@@ -770,6 +773,34 @@ model Notification {
   @@index([userId, read, createdAt]) // Pour liste notifications non lues
   @@index([userId, createdAt]) // Pour liste toutes notifications
   @@map("notifications")
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  userId      String
+  
+  // Web Push subscription data
+  endpoint    String   @unique
+  p256dh      String   // Public key
+  auth        String   // Auth secret
+  
+  // Device info
+  userAgent   String?  @db.Text
+  deviceName  String?
+  
+  // Status
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isActive])
+  @@map("push_subscriptions")
 }
 
 enum NotificationType {
