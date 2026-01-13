@@ -1,0 +1,44 @@
+# Vercel Ignore
+
+# Socket Server (déployé séparément sur Railway)
+socket-server/
+
+# Scripts
+scripts/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Dependencies (rebuilded by Vercel)
+node_modules/
+
+# Build (rebuilded by Vercel)
+.next/
+out/
+dist/
+
+# Prisma
+prisma/migrations/migration_lock.toml
+
+# OS
+.DS_Store
+Thumbs.db

@@ -11,8 +11,11 @@ export function initChatSocket(
     return socket;
   }
 
-  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "", {
-    path: "/api/socket",
+  // Connexion au serveur Socket.IO séparé (Railway)
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+
+  socket = io(socketUrl, {
+    // Pas de path personnalisé car serveur dédié
     auth: {
       userId,
       tenantId,
@@ -21,6 +24,7 @@ export function initChatSocket(
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionAttempts: 5,
+    withCredentials: true,
   });
 
   socket.on("connect", () => {

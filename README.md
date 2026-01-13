@@ -149,11 +149,13 @@ Solution SaaS complète pour la gestion des Services Départementaux d'Incendie 
 
 ### Infrastructure
 
-- **Hosting**: Render / Railway (recommandé pour Socket.IO)
-- **Database**: PostgreSQL (Render / Supabase / Neon)
+- **Hosting**: Architecture Hybride
+  - **Frontend + API** : Vercel (gratuit)
+  - **Socket.IO** : Railway ($5/mois)
+- **Database**: PostgreSQL (Railway inclus)
 - **Cache**: Redis (Upstash gratuit)
 - **Storage**: UploadThing
-- **CDN**: Render Global CDN
+- **CDN**: Vercel Edge Network
 - **Monitoring**: Ready for Sentry
 
 ---
@@ -260,9 +262,24 @@ UPLOADTHING_APP_ID="..."
 
 ### 🚀 Déploiement Production
 
-**Déploiement sur Render.com** (recommandé pour Socket.IO)
+**Architecture Hybride : Vercel + Railway**
 
-📖 **Guide complet** : [RENDER_QUICKSTART.md](RENDER_QUICKSTART.md)
+📖 **Guide complet** : [DEPLOYMENT_HYBRID.md](DEPLOYMENT_HYBRID.md)
+
+```
+Frontend (Vercel)          Socket.IO (Railway)
+   GRATUIT ✅                  $5/mois 💰
+       │                           │
+       └───────────┬───────────────┘
+                   │
+       ┌───────────┴────────────┐
+       │                        │
+       ▼                        ▼
+  PostgreSQL              Upstash Redis
+  (Railway inclus)          GRATUIT ✅
+```
+
+**Déploiement en 3 étapes** :
 
 ```bash
 # 1. Créer compte Upstash Redis gratuit
@@ -271,22 +288,19 @@ UPLOADTHING_APP_ID="..."
 # 2. Générer VAPID keys
 npx web-push generate-vapid-keys
 
-# 3. Déployer sur Render
-#    https://render.com → New Blueprint → Sélectionner repo
-#    Le fichier render.yaml est déjà configuré ✅
+# 3. Déployer Socket.IO sur Railway
+#    cd socket-server
+#    railway up
 
-# 4. Configurer variables d'environnement
-#    UPSTASH_REDIS_REST_URL, VAPID keys, etc.
+# 4. Déployer Frontend sur Vercel
+#    vercel --prod
 ```
 
-**Coût** : ~$7/mois (90 jours gratuits) + PostgreSQL gratuit ✅
+**Coût** : **$5/mois** seulement (Railway) + Vercel gratuit ✅
 
 **Documentation** :
-- [🚀 Guide Rapide](RENDER_QUICKSTART.md) - Démarrage en 5 min
-- [📖 Guide Complet](docs/DEPLOYMENT_RENDER.md) - Documentation détaillée
-- [✅ Checklist](docs/RENDER_CHECKLIST.md) - Liste de vérification
-- [🔧 Commandes](docs/RENDER_COMMANDS.md) - Commandes utiles
-- [🏭 Production](docs/RENDER_PRODUCTION.md) - Best practices
+- [🚀 Guide Hybride](DEPLOYMENT_HYBRID.md) - Déploiement complet (~30 min)
+- [📋 Résumé](DEPLOYMENT_SUMMARY_HYBRID.md) - Architecture et coûts
 
 ---
 
