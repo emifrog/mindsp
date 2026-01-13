@@ -149,10 +149,11 @@ Solution SaaS complète pour la gestion des Services Départementaux d'Incendie 
 
 ### Infrastructure
 
-- **Hosting**: Vercel / Custom
-- **Database**: PostgreSQL (Supabase / Neon)
+- **Hosting**: Render / Railway (recommandé pour Socket.IO)
+- **Database**: PostgreSQL (Render / Supabase / Neon)
+- **Cache**: Redis (Upstash gratuit)
 - **Storage**: UploadThing
-- **CDN**: Vercel Edge Network
+- **CDN**: Render Global CDN
 - **Monitoring**: Ready for Sentry
 
 ---
@@ -224,15 +225,9 @@ Solution SaaS complète pour la gestion des Services Départementaux d'Incendie 
 
 ## 🚀 Démarrage Rapide
 
-### Prérequis
+### 💻 Développement Local
 
-```bash
-Node.js 20+
-PostgreSQL 14+
-Redis (optionnel pour queues)
-```
-
-### Installation
+**Prérequis** : Node.js 20+, PostgreSQL 14+, Redis (optionnel)
 
 ```bash
 # Cloner le repo
@@ -253,7 +248,7 @@ npx prisma db seed
 npm run dev
 ```
 
-### Variables d'environnement essentielles
+**Variables d'environnement essentielles** :
 
 ```env
 DATABASE_URL="postgresql://..."
@@ -262,6 +257,36 @@ NEXTAUTH_URL="http://localhost:3000"
 UPLOADTHING_SECRET="..."
 UPLOADTHING_APP_ID="..."
 ```
+
+### 🚀 Déploiement Production
+
+**Déploiement sur Render.com** (recommandé pour Socket.IO)
+
+📖 **Guide complet** : [RENDER_QUICKSTART.md](RENDER_QUICKSTART.md)
+
+```bash
+# 1. Créer compte Upstash Redis gratuit
+#    https://upstash.com
+
+# 2. Générer VAPID keys
+npx web-push generate-vapid-keys
+
+# 3. Déployer sur Render
+#    https://render.com → New Blueprint → Sélectionner repo
+#    Le fichier render.yaml est déjà configuré ✅
+
+# 4. Configurer variables d'environnement
+#    UPSTASH_REDIS_REST_URL, VAPID keys, etc.
+```
+
+**Coût** : ~$7/mois (90 jours gratuits) + PostgreSQL gratuit ✅
+
+**Documentation** :
+- [🚀 Guide Rapide](RENDER_QUICKSTART.md) - Démarrage en 5 min
+- [📖 Guide Complet](docs/DEPLOYMENT_RENDER.md) - Documentation détaillée
+- [✅ Checklist](docs/RENDER_CHECKLIST.md) - Liste de vérification
+- [🔧 Commandes](docs/RENDER_COMMANDS.md) - Commandes utiles
+- [🏭 Production](docs/RENDER_PRODUCTION.md) - Best practices
 
 ---
 

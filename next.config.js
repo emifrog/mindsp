@@ -6,7 +6,9 @@ const nextConfig = {
   // Experimental features
   experimental: {
     serverActions: {
-      allowedOrigins: ["localhost:3000"],
+      allowedOrigins: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(",")
+        : ["localhost:3000"],
     },
   },
 
@@ -19,7 +21,7 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https://utfs.io https://*.uploadthing.com;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://api.uploadthing.com https://*.upstash.io wss://localhost:3001 ws://localhost:3001;
+      connect-src 'self' https://api.uploadthing.com https://*.upstash.io wss://localhost:3001 ws://localhost:3001 wss://*.onrender.com;
       media-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
