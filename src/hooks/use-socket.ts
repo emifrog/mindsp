@@ -1,108 +1,122 @@
-import { useEffect, useState } from "react";
-import { Socket } from "socket.io-client";
-import { initSocket, disconnectSocket, getSocket } from "@/lib/socket/client";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./use-auth";
+import {
+  initRealtime,
+  disconnectRealtime,
+  joinChannel,
+  leaveChannel,
+  sendMessage as sendRealtimeMessage,
+  sendTypingStart,
+  sendTypingStop,
+  onMessage,
+  onTyping,
+  onStopTyping,
+} from "@/lib/realtime-client";
 
 export function useSocket() {
   const { user } = useAuth();
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.id || !user?.tenantId || initializedRef.current) {
       return;
     }
 
-    const socketInstance = initSocket(user.id, user.tenantId);
-    setSocket(socketInstance);
-
-    socketInstance.on("connect", () => {
-      setIsConnected(true);
-    });
-
-    socketInstance.on("disconnect", () => {
-      setIsConnected(false);
-    });
+    initRealtime(user.id, user.tenantId);
+    initializedRef.current = true;
+    setIsConnected(true);
 
     return () => {
-      disconnectSocket();
-      setSocket(null);
+      disconnectRealtime();
+      initializedRef.current = false;
       setIsConnected(false);
     };
-  }, [user]);
+  }, [user?.id, user?.tenantId]);
 
   return {
-    socket,
     isConnected,
   };
 }
 
 export function useConversation(conversationId: string | null) {
-  const { socket, isConnected } = useSocket();
+  const { isConnected } = useSocket();
   const [messages, setMessages] = useState<any[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!socket || !conversationId || !isConnected) {
+    if (!conversationId || !isConnected) {
       return;
     }
 
     // Rejoindre la conversation
-    socket.emit("join_conversation", conversationId);
+    joinChannel(conversationId);
 
     // Écouter les nouveaux messages
-    const handleNewMessage = (message: any) => {
-      setMessages((prev) => [...prev, message]);
-    };
+    const unsubMessage = onMessage((message: any) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) => [...prev, message]);
+      }
+    });
 
     // Écouter les indicateurs de frappe
-    const handleUserTyping = (data: { userId: string }) => {
-      setTypingUsers((prev) => [...new Set([...prev, data.userId])]);
-    };
+    const unsubTyping = onTyping((data) => {
+      if (data.channelId === conversationId) {
+        setTypingUsers((prev) => [...new Set([...prev, data.userId])]);
+      }
+    });
 
-    const handleUserStoppedTyping = (data: { userId: string }) => {
-      setTypingUsers((prev) => prev.filter((id) => id !== data.userId));
-    };
-
-    socket.on("new_message", handleNewMessage);
-    socket.on("user_typing", handleUserTyping);
-    socket.on("user_stopped_typing", handleUserStoppedTyping);
+    const unsubStopTyping = onStopTyping((data) => {
+      if (data.channelId === conversationId) {
+        setTypingUsers((prev) => prev.filter((id) => id !== data.userId));
+      }
+    });
 
     return () => {
-      socket.emit("leave_conversation", conversationId);
-      socket.off("new_message", handleNewMessage);
-      socket.off("user_typing", handleUserTyping);
-      socket.off("user_stopped_typing", handleUserStoppedTyping);
+      leaveChannel(conversationId);
+      unsubMessage();
+      unsubTyping();
+      unsubStopTyping();
     };
-  }, [socket, conversationId, isConnected]);
+  }, [conversationId, isConnected]);
 
-  const sendMessage = (content: string, type = "TEXT") => {
-    if (!socket || !conversationId) return;
+  const sendMessage = useCallback(
+    async (content: string, type = "TEXT") => {
+      if (!conversationId) return;
 
-    socket.emit("send_message", {
-      conversationId,
-      content,
-      type,
-    });
-  };
+      const response = await fetch(`/api/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId, content, type }),
+      });
 
-  const startTyping = () => {
-    if (!socket || !conversationId) return;
-    socket.emit("typing_start", conversationId);
-  };
+      if (response.ok) {
+        const message = await response.json();
+        await sendRealtimeMessage(conversationId, message);
+      }
+    },
+    [conversationId]
+  );
 
-  const stopTyping = () => {
-    if (!socket || !conversationId) return;
-    socket.emit("typing_stop", conversationId);
-  };
+  const startTyping = useCallback(() => {
+    if (!conversationId) return;
+    sendTypingStart(conversationId);
+  }, [conversationId]);
 
-  const markAsRead = (messageId: string) => {
-    if (!socket || !conversationId) return;
-    socket.emit("mark_as_read", {
-      conversationId,
-      messageId,
-    });
-  };
+  const stopTyping = useCallback(() => {
+    if (!conversationId) return;
+    sendTypingStop(conversationId);
+  }, [conversationId]);
+
+  const markAsRead = useCallback(
+    async (messageId: string) => {
+      if (!conversationId) return;
+      await fetch(`/api/messages/${messageId}/read`, {
+        method: "POST",
+      });
+    },
+    [conversationId]
+  );
 
   return {
     messages,

@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Upsert: créer ou mettre à jour l'abonnement
-    // @ts-expect-error - PushSubscription model will be available after prisma generate
     const subscription = await prisma.pushSubscription.upsert({
       where: { endpoint },
       create: {
@@ -66,7 +65,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // @ts-expect-error - PushSubscription model will be available after prisma generate
     const subscriptions = await prisma.pushSubscription.findMany({
       where: {
         userId: session.user.id,

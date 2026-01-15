@@ -73,7 +73,7 @@ export async function POST(
       where: { id: participation.id },
       data: {
         status: "PRESENT",
-        presentAt: new Date(),
+        checkInTime: new Date(),
       },
     });
 

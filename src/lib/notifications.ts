@@ -4,17 +4,7 @@
  */
 
 import { prisma } from "./prisma";
-import { getSocketServer } from "./socket/server";
-
-export type NotificationType =
-  | "MESSAGE"
-  | "FMPA_INVITATION"
-  | "FMPA_REMINDER"
-  | "FMPA_CANCELLED"
-  | "FMPA_UPDATED"
-  | "PARTICIPATION_APPROVED"
-  | "PARTICIPATION_REJECTED"
-  | "SYSTEM";
+import { NotificationType } from "@prisma/client";
 
 export interface NotificationData {
   userId: string;
@@ -43,11 +33,7 @@ export async function createNotification(data: NotificationData) {
       },
     });
 
-    // Envoyer en temps réel via Socket.IO
-    const io = getSocketServer();
-    if (io) {
-      io.to(`user:${data.userId}`).emit("notification", notification);
-    }
+    // Note: Les notifications temps réel sont gérées via Supabase Realtime côté client
 
     return notification;
   } catch (error) {
@@ -178,7 +164,7 @@ export async function notifyFMPAInvitation(
   return createNotification({
     userId,
     tenantId,
-    type: "FMPA_INVITATION",
+    type: "FMPA_CREATED",
     title: "Nouvelle FMPA disponible",
     message: `Une nouvelle FMPA "${fmpaTitle}" est disponible pour inscription`,
     link: `/fmpa/${fmpaId}`,
@@ -211,7 +197,7 @@ export async function notifyParticipationApproved(
   return createNotification({
     userId,
     tenantId,
-    type: "PARTICIPATION_APPROVED",
+    type: "FORMATION_APPROVED",
     title: "Inscription approuvée",
     message: `Votre inscription à "${fmpaTitle}" a été approuvée`,
     link: `/fmpa/${fmpaId}`,
@@ -227,7 +213,7 @@ export async function notifyParticipationRejected(
   return createNotification({
     userId,
     tenantId,
-    type: "PARTICIPATION_REJECTED",
+    type: "FORMATION_REJECTED",
     title: "Inscription refusée",
     message: `Votre inscription à "${fmpaTitle}" a été refusée`,
     link: `/fmpa/${fmpaId}`,

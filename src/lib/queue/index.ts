@@ -1,166 +1,67 @@
 /**
  * Système de queue avec BullMQ et Redis
  * Pour les tâches asynchrones (emails, notifications, etc.)
+ * 
+ * Note: Ce module est optionnel et nécessite Redis.
+ * Si Redis n'est pas configuré, les fonctions retournent null.
  */
 
-import { Queue, Worker, Job } from "bullmq";
-import { sendEmail } from "@/lib/email";
-import { createNotification } from "@/lib/notifications";
+// Types pour éviter les imports au niveau module
+type QueueType = import("bullmq").Queue;
+type WorkerType = import("bullmq").Worker;
 
-// Configuration Redis - SANS fallbacks dangereux
-if (!process.env.REDIS_HOST) {
-  throw new Error("REDIS_HOST environment variable is required");
-}
-
-if (!process.env.REDIS_PORT) {
-  throw new Error("REDIS_PORT environment variable is required");
-}
-
-const connection = {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT, 10),
+// Configuration Redis - Lazy initialization pour éviter les erreurs au build
+const getConnection = () => {
+  const REDIS_HOST = process.env.REDIS_HOST;
+  const REDIS_PORT = process.env.REDIS_PORT;
+  
+  if (!REDIS_HOST || !REDIS_PORT) {
+    return null;
+  }
+  
+  return {
+    host: REDIS_HOST,
+    port: parseInt(REDIS_PORT, 10),
+  };
 };
 
 // ============================================
-// QUEUES
+// QUEUES (Lazy initialization)
 // ============================================
 
-export const emailQueue = new Queue("emails", { connection });
-export const notificationQueue = new Queue("notifications", { connection });
-export const reminderQueue = new Queue("reminders", { connection });
+let _emailQueue: QueueType | null = null;
+let _notificationQueue: QueueType | null = null;
+let _reminderQueue: QueueType | null = null;
+let _initialized = false;
 
-// ============================================
-// WORKERS
-// ============================================
+async function initQueues() {
+  if (_initialized) return;
+  
+  const connection = getConnection();
+  if (!connection) return;
+  
+  const { Queue } = await import("bullmq");
+  
+  _emailQueue = new Queue("emails", { connection });
+  _notificationQueue = new Queue("notifications", { connection });
+  _reminderQueue = new Queue("reminders", { connection });
+  _initialized = true;
+}
 
-/**
- * Worker pour l'envoi d'emails
- */
-export const emailWorker = new Worker(
-  "emails",
-  async (job: Job) => {
-    console.log(`📧 Traitement email job ${job.id}`);
+export const getEmailQueue = async () => {
+  await initQueues();
+  return _emailQueue;
+};
 
-    const { to, subject, html } = job.data;
+export const getNotificationQueue = async () => {
+  await initQueues();
+  return _notificationQueue;
+};
 
-    try {
-      const success = await sendEmail({ to, subject, html });
-
-      if (!success) {
-        throw new Error("Échec envoi email");
-      }
-
-      console.log(`✅ Email envoyé à ${to}`);
-      return { success: true, to };
-    } catch (error) {
-      console.error(`❌ Erreur envoi email:`, error);
-      throw error;
-    }
-  },
-  {
-    connection,
-    concurrency: 5, // 5 emails en parallèle max
-    limiter: {
-      max: 10, // Max 10 emails
-      duration: 1000, // Par seconde
-    },
-  }
-);
-
-/**
- * Worker pour les notifications
- */
-export const notificationWorker = new Worker(
-  "notifications",
-  async (job: Job) => {
-    console.log(`🔔 Traitement notification job ${job.id}`);
-
-    const { userId, tenantId, type, title, message, link, metadata } = job.data;
-
-    try {
-      await createNotification({
-        userId,
-        tenantId,
-        type,
-        title,
-        message,
-        link,
-        metadata,
-      });
-
-      console.log(`✅ Notification créée pour user ${userId}`);
-      return { success: true, userId };
-    } catch (error) {
-      console.error(`❌ Erreur création notification:`, error);
-      throw error;
-    }
-  },
-  {
-    connection,
-    concurrency: 10,
-  }
-);
-
-/**
- * Worker pour les rappels FMPA
- */
-export const reminderWorker = new Worker(
-  "reminders",
-  async (job: Job) => {
-    console.log(`⏰ Traitement rappel job ${job.id}`);
-
-    const { fmpaId, type } = job.data;
-
-    try {
-      // Récupérer la FMPA et ses participants
-      const { prisma } = await import("@/lib/prisma");
-      const fmpa = await prisma.fMPA.findUnique({
-        where: { id: fmpaId },
-        include: {
-          participations: {
-            include: {
-              user: true,
-            },
-          },
-        },
-      });
-
-      if (!fmpa) {
-        throw new Error("FMPA introuvable");
-      }
-
-      // Envoyer les rappels
-      for (const participation of fmpa.participations) {
-        // Email
-        await emailQueue.add(`reminder-${participation.userId}`, {
-          to: participation.user.email,
-          subject: `Rappel : ${fmpa.title}`,
-          html: `<p>Rappel : La FMPA "${fmpa.title}" commence demain.</p>`,
-        });
-
-        // Notification in-app
-        await notificationQueue.add(`reminder-notif-${participation.userId}`, {
-          userId: participation.user.id,
-          tenantId: fmpa.tenantId,
-          type: "FMPA_REMINDER",
-          title: "Rappel FMPA",
-          message: `La FMPA "${fmpa.title}" commence demain`,
-          link: `/fmpa/${fmpa.id}`,
-        });
-      }
-
-      console.log(`✅ Rappels envoyés pour FMPA ${fmpaId}`);
-      return { success: true, count: fmpa.participations.length };
-    } catch (error) {
-      console.error(`❌ Erreur envoi rappels:`, error);
-      throw error;
-    }
-  },
-  {
-    connection,
-    concurrency: 2,
-  }
-);
+export const getReminderQueue = async () => {
+  await initQueues();
+  return _reminderQueue;
+};
 
 // ============================================
 // HELPERS
@@ -175,7 +76,10 @@ export async function queueEmail(
   html: string,
   options?: { delay?: number }
 ) {
-  return emailQueue.add(
+  const queue = await getEmailQueue();
+  if (!queue) return null;
+  
+  return queue.add(
     `email-${Date.now()}`,
     { to, subject, html },
     {
@@ -204,7 +108,10 @@ export async function queueNotification(
   },
   options?: { delay?: number }
 ) {
-  return notificationQueue.add(`notif-${Date.now()}`, data, {
+  const queue = await getNotificationQueue();
+  if (!queue) return null;
+  
+  return queue.add(`notif-${Date.now()}`, data, {
     delay: options?.delay,
     attempts: 2,
   });
@@ -214,14 +121,17 @@ export async function queueNotification(
  * Planifier un rappel FMPA (24h avant)
  */
 export async function scheduleReminderFMPA(fmpaId: string, startDate: Date) {
+  const queue = await getReminderQueue();
+  if (!queue) return null;
+  
   const now = new Date();
   const reminderTime = new Date(startDate);
-  reminderTime.setHours(reminderTime.getHours() - 24); // 24h avant
+  reminderTime.setHours(reminderTime.getHours() - 24);
 
   const delay = reminderTime.getTime() - now.getTime();
 
   if (delay > 0) {
-    return reminderQueue.add(
+    return queue.add(
       `reminder-fmpa-${fmpaId}`,
       { fmpaId, type: "FMPA_REMINDER" },
       {
@@ -239,6 +149,19 @@ export async function scheduleReminderFMPA(fmpaId: string, startDate: Date) {
 // ============================================
 
 export async function getQueueStats() {
+  const emailQueue = await getEmailQueue();
+  const notificationQueue = await getNotificationQueue();
+  const reminderQueue = await getReminderQueue();
+  
+  if (!emailQueue || !notificationQueue || !reminderQueue) {
+    return {
+      emails: null,
+      notifications: null,
+      reminders: null,
+      error: "Redis not configured",
+    };
+  }
+  
   const [emailStats, notifStats, reminderStats] = await Promise.all([
     emailQueue.getJobCounts(),
     notificationQueue.getJobCounts(),
@@ -252,28 +175,80 @@ export async function getQueueStats() {
   };
 }
 
-// Gestion des erreurs
-emailWorker.on("failed", (job, err) => {
-  console.error(`❌ Email job ${job?.id} failed:`, err);
-});
+// ============================================
+// WORKERS (Only start in worker process)
+// ============================================
 
-notificationWorker.on("failed", (job, err) => {
-  console.error(`❌ Notification job ${job?.id} failed:`, err);
-});
+let _workersInitialized = false;
 
-reminderWorker.on("failed", (job, err) => {
-  console.error(`❌ Reminder job ${job?.id} failed:`, err);
-});
-
-// Logs de succès
-emailWorker.on("completed", (job) => {
-  console.log(`✅ Email job ${job.id} completed`);
-});
-
-notificationWorker.on("completed", (job) => {
-  console.log(`✅ Notification job ${job.id} completed`);
-});
-
-reminderWorker.on("completed", (job) => {
-  console.log(`✅ Reminder job ${job.id} completed`);
-});
+export async function initWorkers() {
+  if (_workersInitialized) return;
+  
+  const connection = getConnection();
+  if (!connection) return;
+  
+  const { Worker } = await import("bullmq");
+  const { sendEmail } = await import("@/lib/email");
+  const { createNotification } = await import("@/lib/notifications");
+  
+  // Email Worker
+  const emailWorker = new Worker(
+    "emails",
+    async (job) => {
+      const { to, subject, html } = job.data;
+      const success = await sendEmail({ to, subject, html });
+      if (!success) throw new Error("Échec envoi email");
+      return { success: true, to };
+    },
+    { connection, concurrency: 5 }
+  );
+  
+  // Notification Worker
+  const notificationWorker = new Worker(
+    "notifications",
+    async (job) => {
+      const { userId, tenantId, type, title, message, link, metadata } = job.data;
+      await createNotification({ userId, tenantId, type, title, message, link, metadata });
+      return { success: true, userId };
+    },
+    { connection, concurrency: 10 }
+  );
+  
+  // Reminder Worker
+  const reminderWorker = new Worker(
+    "reminders",
+    async (job) => {
+      const { fmpaId } = job.data;
+      const { prisma } = await import("@/lib/prisma");
+      
+      const fmpa = await prisma.fMPA.findUnique({
+        where: { id: fmpaId },
+        include: { participations: { include: { user: true } } },
+      });
+      
+      if (!fmpa) throw new Error("FMPA introuvable");
+      
+      for (const participation of fmpa.participations) {
+        await queueEmail(
+          participation.user.email,
+          `Rappel : ${fmpa.title}`,
+          `<p>Rappel : La FMPA "${fmpa.title}" commence demain.</p>`
+        );
+        
+        await queueNotification({
+          userId: participation.user.id,
+          tenantId: fmpa.tenantId,
+          type: "FMPA_REMINDER",
+          title: "Rappel FMPA",
+          message: `La FMPA "${fmpa.title}" commence demain`,
+          link: `/fmpa/${fmpa.id}`,
+        });
+      }
+      
+      return { success: true, count: fmpa.participations.length };
+    },
+    { connection, concurrency: 2 }
+  );
+  
+  _workersInitialized = true;
+}

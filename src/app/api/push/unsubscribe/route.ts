@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Désactiver l'abonnement (soft delete)
-    // @ts-expect-error - PushSubscription model will be available after prisma generate
     await prisma.pushSubscription.updateMany({
       where: {
         endpoint,
