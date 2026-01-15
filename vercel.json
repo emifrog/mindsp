@@ -1,0 +1,8 @@
+{
+  "buildCommand": "prisma generate --no-engine && next build",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "env": {
+    "PRISMA_HIDE_UPDATE_MESSAGE": "true"
+  }
+}
