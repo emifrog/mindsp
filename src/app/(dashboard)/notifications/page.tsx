@@ -47,20 +47,20 @@ export default function NotificationsPage() {
     return PRIORITY_BADGES[priority];
   };
 
-  const filteredNotifications = notifications.filter((notif: any) => {
+  const filteredNotifications = notifications.filter((notif: Notification) => {
     if (filter === "unread" && notif.read) return false;
     if (typeFilter && !notif.type.includes(typeFilter)) return false;
     return true;
   });
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
   };
 
   const groupedNotifications = filteredNotifications.reduce(
-    (acc: any, notif: any) => {
+    (acc: Record<string, Notification[]>, notif: Notification) => {
       const today = new Date();
       const notifDate = new Date(notif.createdAt);
       const diffDays = Math.floor(
@@ -108,7 +108,7 @@ export default function NotificationsPage() {
       {/* Filtres */}
       <Tabs
         value={filter}
-        onValueChange={(v) => setFilter(v as any)}
+        onValueChange={(v) => setFilter(v as "all" | "unread")}
         className="mb-6"
       >
         <TabsList>
@@ -181,13 +181,13 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedNotifications).map(
-            ([group, notifs]: [string, any]) => (
+            ([group, notifs]: [string, Notification[]]) => (
               <div key={group}>
                 <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
                   {group}
                 </h2>
                 <div className="space-y-2">
-                  {notifs.map((notification: any) => (
+                  {notifs.map((notification: Notification) => (
                     <div
                       key={notification.id}
                       className={cn(

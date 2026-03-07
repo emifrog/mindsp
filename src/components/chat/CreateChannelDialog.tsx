@@ -159,7 +159,7 @@ export function CreateChannelDialog({
               <Label htmlFor="type">Type de canal</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: any) =>
+                onValueChange={(value: string) =>
                   setFormData({ ...formData, type: value })
                 }
               >

@@ -59,7 +59,7 @@ export default function PortailsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, { label: string; variant: string }> = {
       PUBLISHED: { label: "Publié", variant: "default" },
       DRAFT: { label: "Brouillon", variant: "secondary" },
       ARCHIVED: { label: "Archivé", variant: "outline" },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import {
@@ -65,10 +64,10 @@ export async function GET(
           { status: 400 }
         );
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur GET /api/fmpa/[id]/export:", error);
     return NextResponse.json(
-      { error: error.message || "Erreur lors de l'export" },
+      { error: error instanceof Error ? error.message : "Erreur lors de l'export" },
       { status: 500 }
     );
   }

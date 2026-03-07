@@ -18,14 +18,61 @@ import { useToast } from "@/hooks/use-toast";
 import { ParticipantsList } from "@/components/fmpa/ParticipantsList";
 import { MealRegistration } from "@/components/fmpa/MealRegistration";
 
+interface FMPAParticipation {
+  id: string;
+  userId: string;
+  status: string;
+  mealRegistration?: {
+    id: string;
+    menuChoice?: string;
+    dietaryRestrictions?: string;
+    confirmed: boolean;
+  } | null;
+}
+
+interface FMPADetail {
+  title: string;
+  description?: string;
+  type: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  maxParticipants?: number;
+  objectives?: string;
+  equipment?: string;
+  mealAvailable?: boolean;
+  mealOptions?: { menus?: string[] };
+  createdBy: { firstName: string; lastName: string };
+  participations?: FMPAParticipation[];
+  userId?: string;
+}
+
+interface FMPADetailStats {
+  total: number;
+  capacity?: { isFull: boolean };
+  rates?: { attendance: number; meal: number };
+  byStatus?: {
+    registered: number;
+    confirmed: number;
+    present: number;
+    absent: number;
+    excused: number;
+  };
+  meals?: {
+    total: number;
+    byMenu?: { menu: string; count: number }[];
+  };
+}
+
 export default function FMPADetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const [fmpa, setFmpa] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [fmpa, setFmpa] = useState<FMPADetail | null>(null);
+  const [stats, setStats] = useState<FMPADetailStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userParticipation, setUserParticipation] = useState<any>(null);
+  const [userParticipation, setUserParticipation] = useState<FMPAParticipation | null>(null);
 
   useEffect(() => {
     if (params.id) {
@@ -46,7 +93,7 @@ export default function FMPADetailsPage() {
 
       // Find user participation
       const userPart = fmpaData.participations?.find(
-        (p: any) => p.userId === fmpaData.userId // TODO: Get from session
+        (p: FMPAParticipation) => p.userId === fmpaData.userId // TODO: Get from session
       );
       setUserParticipation(userPart);
 
@@ -56,11 +103,11 @@ export default function FMPADetailsPage() {
         const statsData = await statsRes.json();
         setStats(statsData);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de charger les données",
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     } finally {
@@ -89,11 +136,11 @@ export default function FMPADetailsPage() {
       });
 
       fetchData();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     }
@@ -120,11 +167,11 @@ export default function FMPADetailsPage() {
       });
 
       fetchData();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     }
@@ -386,7 +433,7 @@ export default function FMPADetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {stats.meals.byMenu.map((menu: any, index: number) => (
+                    {stats.meals.byMenu.map((menu: { menu: string; count: number }, index: number) => (
                       <div key={index} className="flex justify-between">
                         <span>{menu.menu}</span>
                         <Badge variant="outline">{menu.count}</Badge>

@@ -28,11 +28,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface FMPAStats {
+  global: {
+    totalFMPAs: number;
+    totalParticipations: number;
+    totalPresent: number;
+    attendanceRate: number;
+  };
+  userParticipationRates: {
+    user: { id: string; firstName: string; lastName: string };
+    totalParticipations: number;
+    presentCount: number;
+    rate: number;
+  }[];
+  trainingHoursByUser: {
+    user: { id: string; firstName: string; lastName: string };
+    formationsCount: number;
+    totalHours: number;
+  }[];
+  fmpaAttendanceRates: {
+    fmpa: { id: string; title: string; type: string };
+    totalParticipants: number;
+    presentCount: number;
+    rate: number;
+  }[];
+}
+
 export function FMPAStatistics() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("month");
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<FMPAStats | null>(null);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -204,7 +230,7 @@ export function FMPAStatistics() {
             <TableBody>
               {stats.userParticipationRates
                 .slice(0, 10)
-                .map((userStat: any) => (
+                .map((userStat: FMPAStats["userParticipationRates"][number]) => (
                   <TableRow key={userStat.user.id}>
                     <TableCell className="font-medium">
                       {userStat.user.firstName} {userStat.user.lastName}
@@ -248,7 +274,7 @@ export function FMPAStatistics() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stats.trainingHoursByUser.slice(0, 10).map((userStat: any) => (
+              {stats.trainingHoursByUser.slice(0, 10).map((userStat: FMPAStats["trainingHoursByUser"][number]) => (
                 <TableRow key={userStat.user.id}>
                   <TableCell className="font-medium">
                     {userStat.user.firstName} {userStat.user.lastName}
@@ -287,7 +313,7 @@ export function FMPAStatistics() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stats.fmpaAttendanceRates.slice(0, 10).map((fmpaStat: any) => (
+              {stats.fmpaAttendanceRates.slice(0, 10).map((fmpaStat: FMPAStats["fmpaAttendanceRates"][number]) => (
                 <TableRow key={fmpaStat.fmpa.id}>
                   <TableCell className="font-medium">
                     {fmpaStat.fmpa.title}

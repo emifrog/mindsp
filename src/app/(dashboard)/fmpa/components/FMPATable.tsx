@@ -48,7 +48,7 @@ const typeLabels: Record<string, string> = {
   PRESENCE_ACTIVE: "Présence Active",
 };
 
-const statusVariants: Record<string, any> = {
+const statusVariants: Record<string, { label: string; variant: string }> = {
   DRAFT: { label: "Brouillon", variant: "secondary" },
   PUBLISHED: { label: "Publié", variant: "default" },
   IN_PROGRESS: { label: "En cours", variant: "default" },

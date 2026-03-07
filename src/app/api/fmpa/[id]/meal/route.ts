@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
@@ -83,10 +82,10 @@ export async function POST(
     });
 
     return NextResponse.json(mealRegistration, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur POST /api/fmpa/[id]/meal:", error);
 
-    if (error.name === "ZodError") {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
         { status: 400 }
@@ -152,10 +151,10 @@ export async function PUT(
     });
 
     return NextResponse.json(mealRegistration);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur PUT /api/fmpa/[id]/meal:", error);
 
-    if (error.name === "ZodError") {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
         { status: 400 }

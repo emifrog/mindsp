@@ -44,7 +44,7 @@ export interface Notification {
   actionUrl?: string;
   pushSent: boolean;
   pushSentAt?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   expiresAt?: Date;
   createdAt: Date;
 }
@@ -59,7 +59,7 @@ export interface CreateNotificationData {
   priority?: NotificationPriority;
   actionLabel?: string;
   actionUrl?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   expiresAt?: Date;
   sendPush?: boolean; // Envoyer notification push navigateur
 }

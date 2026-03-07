@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Calendar, MapPin, CheckCircle, XCircle, Clock, type LucideIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,6 +11,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+
+interface Participation {
+  id: string;
+  status: string;
+  fmpa: {
+    title: string;
+    startDate: string;
+    location: string;
+    type: string;
+  };
+}
 
 interface ParticipationHistoryProps {
   userId?: string;
@@ -26,7 +37,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Annulé",
 };
 
-const STATUS_ICONS: Record<string, any> = {
+const STATUS_ICONS: Record<string, LucideIcon> = {
   REGISTERED: Clock,
   CONFIRMED: CheckCircle,
   PRESENT: CheckCircle,
@@ -49,7 +60,7 @@ export function ParticipationHistory({
   limit = 10,
 }: ParticipationHistoryProps) {
   const { toast } = useToast();
-  const [participations, setParticipations] = useState<any[]>([]);
+  const [participations, setParticipations] = useState<Participation[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,

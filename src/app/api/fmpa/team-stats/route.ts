@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { exportTeamStatistics } from "@/lib/fmpa-exports";
@@ -42,12 +41,12 @@ export async function GET(request: NextRequest) {
     const data = XLSX.utils.sheet_to_json(worksheet);
 
     return NextResponse.json({ data, period });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur GET /api/fmpa/team-stats:", error);
     return NextResponse.json(
       {
         error:
-          error.message || "Erreur lors de la récupération des statistiques",
+          error instanceof Error ? error.message : "Erreur lors de la récupération des statistiques",
       },
       { status: 500 }
     );

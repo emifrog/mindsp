@@ -86,11 +86,11 @@ export function TrainingProposal({
       if (onRegistrationChange) {
         onRegistrationChange();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de s'inscrire",
+        description: error instanceof Error ? error.message : "Impossible de s'inscrire",
         variant: "destructive",
       });
     } finally {

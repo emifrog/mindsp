@@ -17,7 +17,7 @@ import { CheckCircle, Utensils } from "lucide-react";
 
 interface MealRegistrationProps {
   fmpaId: string;
-  mealOptions?: any;
+  mealOptions?: { menus?: string[] };
   currentRegistration?: {
     id: string;
     menuChoice?: string | null;
@@ -75,11 +75,11 @@ export function MealRegistration({
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     } finally {
@@ -114,11 +114,11 @@ export function MealRegistration({
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     } finally {

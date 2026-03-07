@@ -86,7 +86,20 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: ["localhost"],
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+      },
+      {
+        protocol: "https",
+        hostname: "*.uploadthing.com",
+      },
+    ],
     formats: ["image/avif", "image/webp"],
   },
 

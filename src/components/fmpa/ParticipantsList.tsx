@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, Clock, UserCheck } from "lucide-react";
+import { CheckCircle, XCircle, Clock, UserCheck, type LucideIcon } from "lucide-react";
 
 interface Participant {
   id: string;
@@ -57,7 +57,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Annulé",
 };
 
-const STATUS_ICONS: Record<string, any> = {
+const STATUS_ICONS: Record<string, LucideIcon> = {
   REGISTERED: Clock,
   CONFIRMED: CheckCircle,
   PRESENT: UserCheck,
@@ -121,11 +121,11 @@ export function ParticipantsList({
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur",
         variant: "destructive",
       });
     } finally {

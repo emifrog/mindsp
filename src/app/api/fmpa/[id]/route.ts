@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { updateFMPASchema } from "@/lib/validations/fmpa";
 
 // GET /api/fmpa/[id] - Détails d'une FMPA
@@ -138,7 +139,7 @@ export async function PUT(
 
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
-        { error: "Données invalides", details: (error as any).errors },
+        { error: "Données invalides", details: error instanceof z.ZodError ? error.errors : [] },
         { status: 400 }
       );
     }

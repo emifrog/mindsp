@@ -14,6 +14,16 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
+interface FMPAItem {
+  id: string;
+  title: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  status: string;
+}
+
 const FMPA_TYPE_COLORS: Record<string, string> = {
   FORMATION: "bg-blue-500",
   MANOEUVRE: "bg-red-500",
@@ -26,7 +36,7 @@ const FMPA_TYPE_COLORS: Record<string, string> = {
 
 export function FMPACalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [fmpas, setFmpas] = useState<any[]>([]);
+  const [fmpas, setFmpas] = useState<FMPAItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

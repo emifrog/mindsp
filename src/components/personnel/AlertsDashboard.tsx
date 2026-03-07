@@ -18,12 +18,26 @@ interface Alert {
   urgency: string;
 }
 
+interface AlertsData {
+  summary: {
+    total: number;
+    urgent: number;
+    medical: number;
+    qualifications: number;
+  };
+  alerts: {
+    medical: Alert[];
+    qualifications: Alert[];
+    equipment: Alert[];
+  };
+}
+
 interface AlertsDashboardProps {
   onAlertClick?: (alert: Alert) => void;
 }
 
 export function AlertsDashboard({ onAlertClick }: AlertsDashboardProps) {
-  const [alerts, setAlerts] = useState<any>(null);
+  const [alerts, setAlerts] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

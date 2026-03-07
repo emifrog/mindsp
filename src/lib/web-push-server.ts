@@ -96,14 +96,15 @@ export class WebPushService {
         success: true,
         statusCode: response.statusCode,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur envoi push:", error);
+      const err = error as { statusCode?: number; message?: string };
 
       return {
         endpoint: subscription.endpoint,
         success: false,
-        statusCode: error.statusCode,
-        error: error.message,
+        statusCode: err.statusCode,
+        error: err.message,
       };
     }
   }

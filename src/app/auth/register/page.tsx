@@ -52,10 +52,10 @@ export default function RegisterPage() {
       });
 
       router.push("/auth/login");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Erreur lors de l'inscription",
         variant: "destructive",
       });
     } finally {

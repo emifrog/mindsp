@@ -187,7 +187,7 @@ export default function TTAPage() {
   };
 
   const getStatusColor = (status: string) => {
-    const colors: Record<string, any> = {
+    const colors: Record<string, string> = {
       PENDING: "secondary",
       VALIDATED: "default",
       REJECTED: "destructive",

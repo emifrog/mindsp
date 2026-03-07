@@ -104,7 +104,7 @@ export async function queueNotification(
     title: string;
     message: string;
     link?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   },
   options?: { delay?: number }
 ) {

@@ -21,10 +21,53 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+interface PersonnelEquipment {
+  id: string;
+  name: string;
+  type: string;
+  condition: string;
+  serialNumber?: string;
+  nextCheck?: string;
+  status: string;
+}
+
+interface PersonnelDocument {
+  id: string;
+  title: string;
+  type: string;
+  documentDate?: string;
+  description?: string;
+}
+
+interface PersonnelFile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    avatar?: string;
+    badge?: string;
+  };
+  currentGrade: string;
+  medicalStatus?: {
+    status: string;
+    validUntil: string;
+    nextCheckup: string;
+    restrictions?: string;
+  };
+  engagementDate?: string;
+  reengagementDate?: string;
+  gradeHistory?: unknown[];
+  medals?: unknown[];
+  qualifications?: unknown[];
+  equipments?: PersonnelEquipment[];
+  documents?: PersonnelDocument[];
+}
+
 export default function PersonnelDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<PersonnelFile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -234,7 +277,7 @@ export default function PersonnelDetailPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {file.equipments.map((equipment: any) => (
+                  {file.equipments.map((equipment: PersonnelEquipment) => (
                     <div
                       key={equipment.id}
                       className="flex items-center justify-between rounded-lg border p-4"
@@ -288,7 +331,7 @@ export default function PersonnelDetailPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {file.documents.map((doc: any) => (
+                  {file.documents.map((doc: PersonnelDocument) => (
                     <div
                       key={doc.id}
                       className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"

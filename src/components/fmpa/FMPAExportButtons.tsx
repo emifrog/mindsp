@@ -18,6 +18,53 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
+interface AttendanceParticipant {
+  name: string;
+  badge: string;
+}
+
+interface AttendanceData {
+  title: string;
+  type: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  organizer: string;
+  objectives?: string;
+  equipment?: string;
+  participants: AttendanceParticipant[];
+}
+
+interface ReportParticipant {
+  name: string;
+  badge?: string;
+  reason?: string;
+}
+
+interface ReportData {
+  header: {
+    title: string;
+    type: string;
+    date: string;
+    location: string;
+    organizer: string;
+    duration: string;
+  };
+  objectives?: string;
+  equipment?: string;
+  statistics: {
+    totalParticipants: number;
+    present: number;
+    attendanceRate: number;
+  };
+  participants: {
+    present: ReportParticipant[];
+    absent: ReportParticipant[];
+    excused: ReportParticipant[];
+  };
+}
+
 interface FMPAExportButtonsProps {
   fmpaId: string;
   fmpaTitle: string;
@@ -118,7 +165,7 @@ export function FMPAExportButtons({
 }
 
 // Générer le HTML pour la feuille d'émargement
-function generateAttendanceHTML(data: any) {
+function generateAttendanceHTML(data: AttendanceData) {
   return `
     <!DOCTYPE html>
     <html>
@@ -166,7 +213,7 @@ function generateAttendanceHTML(data: any) {
         <tbody>
           ${data.participants
             .map(
-              (p: any, i: number) => `
+              (p: AttendanceParticipant, i: number) => `
             <tr>
               <td>${i + 1}</td>
               <td>${p.name}</td>
@@ -185,7 +232,7 @@ function generateAttendanceHTML(data: any) {
 }
 
 // Générer le HTML pour le rapport de manœuvre
-function generateReportHTML(data: any) {
+function generateReportHTML(data: ReportData) {
   return `
     <!DOCTYPE html>
     <html>
@@ -245,7 +292,7 @@ function generateReportHTML(data: any) {
       <ul>
         ${data.participants.present
           .map(
-            (p: any) => `
+            (p: ReportParticipant) => `
           <li>${p.name} - ${p.badge || "N/A"}</li>
         `
           )
@@ -259,7 +306,7 @@ function generateReportHTML(data: any) {
         <ul>
           ${data.participants.absent
             .map(
-              (p: any) => `
+              (p: ReportParticipant) => `
             <li>${p.name} - ${p.badge || "N/A"}</li>
           `
             )
@@ -276,7 +323,7 @@ function generateReportHTML(data: any) {
         <ul>
           ${data.participants.excused
             .map(
-              (p: any) => `
+              (p: ReportParticipant) => `
             <li>${p.name} - ${p.badge || "N/A"} ${p.reason ? `(${p.reason})` : ""}</li>
           `
             )

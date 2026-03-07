@@ -272,7 +272,7 @@ export default function FormationsPage() {
                         {getCategoryLabel(formation.category)}
                       </CardDescription>
                     </div>
-                    <Badge variant={getStatusColor(formation.status) as any}>
+                    <Badge variant={getStatusColor(formation.status) as "default" | "secondary" | "destructive" | "outline"}>
                       {getStatusLabel(formation.status)}
                     </Badge>
                   </div>

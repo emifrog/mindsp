@@ -72,9 +72,9 @@ export default function FormationInscriptionsAdminPage() {
       if (response.ok) {
         // Extraire toutes les inscriptions en attente
         const allRegistrations: Registration[] = [];
-        data.formations.forEach((formation: any) => {
+        data.formations.forEach((formation: { id: string; code: string; title: string; startDate: string; registrations?: { id: string; status: string; registeredAt: string; user: { id: string; firstName: string; lastName: string; email: string } }[] }) => {
           if (formation.registrations) {
-            formation.registrations.forEach((reg: any) => {
+            formation.registrations.forEach((reg: { id: string; status: string; registeredAt: string; user: { id: string; firstName: string; lastName: string; email: string } }) => {
               if (reg.status === "PENDING") {
                 allRegistrations.push({
                   ...reg,

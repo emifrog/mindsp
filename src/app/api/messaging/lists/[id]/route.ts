@@ -9,7 +9,7 @@ const updateListSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
   isPublic: z.boolean().optional(),
-  criteria: z.record(z.any()).optional(),
+  criteria: z.record(z.unknown()).optional(),
 });
 
 // GET /api/messaging/lists/[id] - Détails d'une liste

@@ -10,7 +10,7 @@ const createListSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
   type: z.enum(["STATIC", "DYNAMIC"]).default("STATIC"),
-  criteria: z.record(z.any()).optional(), // Pour listes dynamiques
+  criteria: z.record(z.unknown()).optional(), // Pour listes dynamiques
   isPublic: z.boolean().default(false),
   memberIds: z.array(z.string()).optional(), // Pour listes statiques
 });

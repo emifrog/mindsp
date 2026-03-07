@@ -38,6 +38,13 @@ export async function middleware(request: NextRequest) {
 
   // Rediriger vers login si non authentifié et route protégée
   if (!token && !isPublicRoute) {
+    // Pour les routes API, retourner une erreur JSON au lieu de rediriger
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Non authentifié" },
+        { status: 401 }
+      );
+    }
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
@@ -48,23 +55,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Extraction du tenant depuis le sous-domaine (pour production)
+  // Extraction du tenant depuis le sous-domaine (pour production uniquement)
   const hostname = request.headers.get("host") || "";
-  const subdomain = hostname.split(".")[0];
+  const isLocalhost = hostname.includes("localhost") || hostname.includes("127.0.0.1");
+  const isVercelPreview = hostname.includes(".vercel.app");
 
-  // Vérifier que l'utilisateur appartient au bon tenant
-  if (
-    token &&
-    subdomain &&
-    subdomain !== "localhost:3000" &&
-    subdomain !== "www"
-  ) {
-    const tenantSlug = token.tenantSlug as string;
-    if (subdomain !== tenantSlug) {
-      // Rediriger vers le bon sous-domaine
-      const correctUrl = new URL(request.url);
-      correctUrl.hostname = `${tenantSlug}.${hostname.split(".").slice(1).join(".")}`;
-      return NextResponse.redirect(correctUrl);
+  if (token && !isLocalhost && !isVercelPreview) {
+    const parts = hostname.split(".");
+    // Sous-domaine valide seulement si 3+ parties (ex: sdis13.mindsp.fr)
+    if (parts.length >= 3) {
+      const subdomain = parts[0];
+      if (subdomain !== "www") {
+        const tenantSlug = token.tenantSlug as string;
+        if (subdomain !== tenantSlug) {
+          const correctUrl = new URL(request.url);
+          correctUrl.hostname = `${tenantSlug}.${parts.slice(1).join(".")}`;
+          return NextResponse.redirect(correctUrl);
+        }
+      }
     }
   }
 

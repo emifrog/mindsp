@@ -13,6 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 
+interface EmargementFmpa {
+  title: string;
+  type: string;
+  location: string;
+  startDate: string;
+}
+
 export default function EmargementPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -21,7 +28,7 @@ export default function EmargementPage() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fmpa, setFmpa] = useState<any>(null);
+  const [fmpa, setFmpa] = useState<EmargementFmpa | null>(null);
 
   useEffect(() => {
     if (code) {

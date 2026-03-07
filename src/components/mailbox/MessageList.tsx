@@ -26,7 +26,7 @@ export function MessageList({
   onToggleSidebar,
   showSidebarButton,
 }: MessageListProps) {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MailMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 

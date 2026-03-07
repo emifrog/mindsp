@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { createFMPASchema } from "@/lib/validations/fmpa";
 import {
   parsePaginationParams,
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
-        { error: "Données invalides", details: (error as any).errors },
+        { error: "Données invalides", details: error instanceof z.ZodError ? error.errors : [] },
         { status: 400 }
       );
     }

@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const where = {
       tenantId: session.user.tenantId,
-      ...(status && { status: status as any }),
+      ...(status && { status: status as "DRAFT" | "PUBLISHED" | "ARCHIVED" }),
     };
 
     const [portals, total] = await Promise.all([
@@ -111,10 +111,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ portal }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur POST /api/portals:", error);
 
-    if (error.code === "P2002") {
+    if (error instanceof Error && (error as { code?: string }).code === "P2002") {
       return NextResponse.json(
         { error: "Un portail avec ce slug existe déjà" },
         { status: 409 }
