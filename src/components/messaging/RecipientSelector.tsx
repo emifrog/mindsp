@@ -43,8 +43,8 @@ export function RecipientSelector({
 }: RecipientSelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
-  const [lists, setLists] = useState<any[]>([]);
+  const [users, setUsers] = useState<{ id: string; firstName: string; lastName: string; email: string; avatar?: string | null }[]>([]);
+  const [lists, setLists] = useState<{ id: string; name: string; _count?: { members: number } }[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
 
@@ -74,7 +74,7 @@ export function RecipientSelector({
 
       setUsers(usersData.users || []);
       setLists(
-        (listsData.lists || []).filter((list: any) =>
+        (listsData.lists || []).filter((list: { id: string; name: string; _count?: { members: number } }) =>
           list.name.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
       );
@@ -85,7 +85,7 @@ export function RecipientSelector({
     }
   };
 
-  const handleSelectUser = (user: any) => {
+  const handleSelectUser = (user: { id: string; firstName: string; lastName: string; email: string; avatar?: string | null }) => {
     const recipient: Recipient = {
       id: user.id,
       type: "user",
@@ -102,7 +102,7 @@ export function RecipientSelector({
     setOpen(false);
   };
 
-  const handleSelectList = (list: any) => {
+  const handleSelectList = (list: { id: string; name: string; _count?: { members: number } }) => {
     const recipient: Recipient = {
       id: list.id,
       type: "list",

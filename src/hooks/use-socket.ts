@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./use-auth";
+import type { ChatMessage } from "@/types/chat";
 import {
   initRealtime,
   disconnectRealtime,
@@ -41,7 +42,7 @@ export function useSocket() {
 
 export function useConversation(conversationId: string | null) {
   const { isConnected } = useSocket();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<(ChatMessage & { conversationId?: string })[]>([]);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export function useConversation(conversationId: string | null) {
     joinChannel(conversationId);
 
     // Écouter les nouveaux messages
-    const unsubMessage = onMessage((message: any) => {
+    const unsubMessage = onMessage((message: ChatMessage & { conversationId?: string }) => {
       if (message.conversationId === conversationId) {
         setMessages((prev) => [...prev, message]);
       }

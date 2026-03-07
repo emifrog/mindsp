@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/news - Liste des actualités
 export async function GET(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const portalId = searchParams.get("portalId");
     const published = searchParams.get("published");
 
-    const where: any = {
+    const where: Prisma.NewsArticleWhereInput = {
       tenantId: session.user.tenantId,
     };
 
@@ -144,10 +145,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ article }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur POST /api/news:", error);
 
-    if (error.code === "P2002") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
         { error: "Une actualité avec ce slug existe déjà" },
         { status: 409 }

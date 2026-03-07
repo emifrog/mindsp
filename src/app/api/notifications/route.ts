@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { NotificationService } from "@/lib/notification-service";
+import type { NotificationType } from "@/types/notification";
 import { parsePaginationParams, getPaginationParams } from "@/lib/pagination";
 import {
   getCachedNotificationList,
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         unreadOnly,
         limit,
         offset: skip,
-        types: types as any,
+        types: types as NotificationType[] | undefined,
       }
     );
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/chat/channels/[id]/messages - Messages d'un canal
 export async function GET(
@@ -36,7 +37,7 @@ export async function GET(
       );
     }
 
-    const where: any = {
+    const where: Prisma.ChatMessageWhereInput = {
       channelId,
       deletedAt: null,
       parentId: null, // Seulement les messages principaux (pas les réponses)

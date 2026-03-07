@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { updateFMPASchema } from "@/lib/validations/fmpa";
 
 // GET /api/fmpa/[id] - Détails d'une FMPA
@@ -101,7 +102,7 @@ export async function PUT(
     const body = await request.json();
     const validatedData = updateFMPASchema.parse(body);
 
-    const updateData: any = { ...validatedData };
+    const updateData: Prisma.FMPAUpdateInput = { ...validatedData };
 
     if (validatedData.startDate) {
       updateData.startDate = new Date(validatedData.startDate);
@@ -132,12 +133,12 @@ export async function PUT(
     });
 
     return NextResponse.json(fmpa);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur PUT /api/fmpa/[id]:", error);
 
-    if (error.name === "ZodError") {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: "Données invalides", details: (error as any).errors },
         { status: 400 }
       );
     }

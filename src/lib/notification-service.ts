@@ -1,5 +1,6 @@
 // Service de gestion des notifications push
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type {
   CreateNotificationData,
@@ -132,7 +133,7 @@ export class NotificationService {
       types?: NotificationType[];
     }
   ) {
-    const where: any = {
+    const where: Prisma.NotificationWhereInput = {
       userId,
     };
 

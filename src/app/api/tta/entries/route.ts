@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import {
   parsePaginationParams,
   getPaginationParams,
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get("userId");
     const status = searchParams.get("status");
 
-    const where: any = {
+    const where: Prisma.TTAEntryWhereInput = {
       tenantId: session.user.tenantId,
     };
 

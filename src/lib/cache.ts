@@ -196,8 +196,8 @@ export class CacheService {
  */
 export async function cacheFMPAList(
   tenantId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.FMPA}list:${tenantId}:${filterKey}`;
@@ -206,8 +206,8 @@ export async function cacheFMPAList(
 
 export async function getCachedFMPAList(
   tenantId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.FMPA}list:${tenantId}:${filterKey}`;
   return await CacheService.get(key);
@@ -222,8 +222,8 @@ export async function invalidateFMPACache(tenantId: string): Promise<void> {
  */
 export async function cacheFormationList(
   tenantId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.FORMATION}list:${tenantId}:${filterKey}`;
@@ -232,8 +232,8 @@ export async function cacheFormationList(
 
 export async function getCachedFormationList(
   tenantId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.FORMATION}list:${tenantId}:${filterKey}`;
   return await CacheService.get(key);
@@ -250,7 +250,7 @@ export async function invalidateFormationCache(
  */
 export async function cacheUserProfile(
   userId: string,
-  data: any
+  data: unknown
 ): Promise<void> {
   const key = `${CACHE_PREFIX.USER}profile:${userId}`;
   await CacheService.set(key, data, { ttl: CACHE_TTL.USER_PROFILE });
@@ -258,7 +258,7 @@ export async function cacheUserProfile(
 
 export async function getCachedUserProfile(
   userId: string
-): Promise<any | null> {
+): Promise<unknown> {
   const key = `${CACHE_PREFIX.USER}profile:${userId}`;
   return await CacheService.get(key);
 }
@@ -272,8 +272,8 @@ export async function invalidateUserCache(userId: string): Promise<void> {
  */
 export async function cachePersonnelList(
   tenantId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.PERSONNEL}list:${tenantId}:${filterKey}`;
@@ -282,8 +282,8 @@ export async function cachePersonnelList(
 
 export async function getCachedPersonnelList(
   tenantId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.PERSONNEL}list:${tenantId}:${filterKey}`;
   return await CacheService.get(key);
@@ -301,8 +301,8 @@ export async function invalidatePersonnelCache(
 export async function cacheConversationList(
   tenantId: string,
   userId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.CONVERSATION}list:${tenantId}:${userId}:${filterKey}`;
@@ -312,8 +312,8 @@ export async function cacheConversationList(
 export async function getCachedConversationList(
   tenantId: string,
   userId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.CONVERSATION}list:${tenantId}:${userId}:${filterKey}`;
   return await CacheService.get(key);
@@ -339,8 +339,8 @@ export async function invalidateConversationCache(
  */
 export async function cacheNotificationList(
   userId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.NOTIFICATION}list:${userId}:${filterKey}`;
@@ -349,8 +349,8 @@ export async function cacheNotificationList(
 
 export async function getCachedNotificationList(
   userId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.NOTIFICATION}list:${userId}:${filterKey}`;
   return await CacheService.get(key);
@@ -367,8 +367,8 @@ export async function invalidateNotificationCache(
  */
 export async function cacheTTAList(
   tenantId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.TTA}list:${tenantId}:${filterKey}`;
@@ -377,8 +377,8 @@ export async function cacheTTAList(
 
 export async function getCachedTTAList(
   tenantId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.TTA}list:${tenantId}:${filterKey}`;
   return await CacheService.get(key);
@@ -394,8 +394,8 @@ export async function invalidateTTACache(tenantId: string): Promise<void> {
 export async function cacheChatChannelList(
   tenantId: string,
   userId: string,
-  filters: Record<string, any>,
-  data: any
+  filters: Record<string, unknown>,
+  data: unknown
 ): Promise<void> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.CHAT}channels:${tenantId}:${userId}:${filterKey}`;
@@ -405,8 +405,8 @@ export async function cacheChatChannelList(
 export async function getCachedChatChannelList(
   tenantId: string,
   userId: string,
-  filters: Record<string, any>
-): Promise<any | null> {
+  filters: Record<string, unknown>
+): Promise<unknown> {
   const filterKey = JSON.stringify(filters);
   const key = `${CACHE_PREFIX.CHAT}channels:${tenantId}:${userId}:${filterKey}`;
   return await CacheService.get(key);
@@ -431,7 +431,7 @@ export async function invalidateChatChannelCache(
 export async function cacheStats(
   tenantId: string,
   type: string,
-  data: any
+  data: unknown
 ): Promise<void> {
   const key = `${CACHE_PREFIX.STATS}${type}:${tenantId}`;
   await CacheService.set(key, data, { ttl: CACHE_TTL.LIST_LONG });
@@ -440,7 +440,7 @@ export async function cacheStats(
 export async function getCachedStats(
   tenantId: string,
   type: string
-): Promise<any | null> {
+): Promise<unknown> {
   const key = `${CACHE_PREFIX.STATS}${type}:${tenantId}`;
   return await CacheService.get(key);
 }

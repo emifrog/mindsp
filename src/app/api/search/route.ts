@@ -30,7 +30,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const results: any = {
+    interface SearchResult {
+      id: string;
+      type: string;
+      title: string;
+      content: string;
+      author: string;
+      date: Date;
+      url: string;
+    }
+
+    const results: Record<string, SearchResult[]> = {
       chat: [],
       mail: [],
       fmpa: [],

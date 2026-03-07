@@ -52,7 +52,7 @@ export async function createNotification(
       data: {
         userId,
         tenantId,
-        type: type as any, // Cast to NotificationType
+        type,
         title,
         message,
         linkUrl: fmpaId ? `/fmpa/${fmpaId}` : undefined,

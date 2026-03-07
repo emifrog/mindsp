@@ -1,13 +1,11 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { getTenantAuditLogs, getUserAuditLogs } from "@/lib/audit";
 
 // GET /api/audit - Récupérer les logs d'audit
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });

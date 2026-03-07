@@ -34,7 +34,7 @@ let _sensitiveLimiter: Ratelimit;
 export const apiLimiter = new Proxy({} as Ratelimit, {
   get(_, prop) {
     if (!_apiLimiter) _apiLimiter = createLimiter("ratelimit:api", Ratelimit.slidingWindow(100, "1m"));
-    return (_apiLimiter as any)[prop];
+    return (_apiLimiter as Record<string | symbol, unknown>)[prop];
   }
 });
 
@@ -42,7 +42,7 @@ export const apiLimiter = new Proxy({} as Ratelimit, {
 export const authLimiter = new Proxy({} as Ratelimit, {
   get(_, prop) {
     if (!_authLimiter) _authLimiter = createLimiter("ratelimit:auth", Ratelimit.slidingWindow(5, "15m"));
-    return (_authLimiter as any)[prop];
+    return (_authLimiter as Record<string | symbol, unknown>)[prop];
   }
 });
 
@@ -50,7 +50,7 @@ export const authLimiter = new Proxy({} as Ratelimit, {
 export const registerLimiter = new Proxy({} as Ratelimit, {
   get(_, prop) {
     if (!_registerLimiter) _registerLimiter = createLimiter("ratelimit:register", Ratelimit.slidingWindow(3, "1h"));
-    return (_registerLimiter as any)[prop];
+    return (_registerLimiter as Record<string | symbol, unknown>)[prop];
   }
 });
 
@@ -58,7 +58,7 @@ export const registerLimiter = new Proxy({} as Ratelimit, {
 export const sensitiveLimiter = new Proxy({} as Ratelimit, {
   get(_, prop) {
     if (!_sensitiveLimiter) _sensitiveLimiter = createLimiter("ratelimit:sensitive", Ratelimit.slidingWindow(10, "1m"));
-    return (_sensitiveLimiter as any)[prop];
+    return (_sensitiveLimiter as Record<string | symbol, unknown>)[prop];
   }
 });
 

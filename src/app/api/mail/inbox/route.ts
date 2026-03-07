@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/mail/inbox - Boîte de réception
 export async function GET(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
-    const where: any = {
+    const where: Prisma.MailRecipientWhereInput = {
       userId: session.user.id,
       folder: "INBOX",
       deletedAt: null,

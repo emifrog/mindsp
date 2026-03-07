@@ -92,7 +92,7 @@ export const authOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, trigger, session }: { token: Record<string, unknown>; user?: Record<string, unknown>; trigger?: string; session?: Record<string, unknown> }) {
       // Première connexion
       if (user) {
         token.id = user.id;
@@ -108,7 +108,7 @@ export const authOptions = {
 
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: Record<string, unknown> & { user?: Record<string, unknown> }; token: Record<string, unknown> }) {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
@@ -119,7 +119,7 @@ export const authOptions = {
     },
   },
   events: {
-    async signIn({ user }: any) {
+    async signIn({ user }: { user: Record<string, unknown> }) {
       // Connexion réussie
     },
     async signOut() {

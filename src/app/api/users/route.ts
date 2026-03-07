@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/users - Liste des utilisateurs du tenant
 export async function GET(request: NextRequest) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
-    const where: any = {
+    const where: Prisma.UserWhereInput = {
       tenantId: session.user.tenantId,
       status: "ACTIVE",
     };

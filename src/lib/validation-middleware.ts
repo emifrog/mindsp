@@ -14,10 +14,10 @@ export function withValidation<T>(
   handler: (
     request: NextRequest,
     validatedData: T,
-    params?: any
+    params?: Record<string, string>
   ) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest, context?: { params: any }) => {
+  return async (request: NextRequest, context?: { params: Record<string, string> }) => {
     try {
       const body = await request.json();
       const validation = schema.safeParse(body);
@@ -50,12 +50,12 @@ export function withQueryValidation<T>(
   handler: (
     request: NextRequest,
     validatedQuery: T,
-    params?: any
+    params?: Record<string, string>
   ) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest, context?: { params: any }) => {
+  return async (request: NextRequest, context?: { params: Record<string, string> }) => {
     const { searchParams } = new URL(request.url);
-    const queryObject: Record<string, any> = {};
+    const queryObject: Record<string, string> = {};
 
     searchParams.forEach((value, key) => {
       queryObject[key] = value;

@@ -155,7 +155,12 @@ export interface SocketEvents {
   "user-typing": (data: {
     userId: string;
     channelId: string;
-    user: any;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      avatar?: string | null;
+    };
   }) => void;
   "user-stopped-typing": (data: { userId: string; channelId: string }) => void;
   "presence-updated": (data: {

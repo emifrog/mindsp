@@ -86,7 +86,7 @@ export function NotificationBell() {
           </div>
         ) : (
           <div className="max-h-[500px] overflow-y-auto">
-            {notifications.slice(0, 10).map((notification: any) => (
+            {notifications.slice(0, 10).map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className="cursor-pointer p-0"

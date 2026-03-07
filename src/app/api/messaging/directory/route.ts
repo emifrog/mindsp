@@ -1,8 +1,8 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import getServerSession from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/messaging/directory - Annuaire RH avec recherche intelligente
 export async function GET(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const onlyFavorites = searchParams.get("favorites") === "true";
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    const where: any = {
+    const where: Prisma.UserWhereInput = {
       tenantId: session.user.tenantId,
       status: "ACTIVE",
       id: { not: session.user.id }, // Exclure l'utilisateur actuel

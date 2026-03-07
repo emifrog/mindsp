@@ -161,7 +161,7 @@ export function sanitizeFilename(filename: string): string {
 /**
  * Sanitiser un objet JSON (récursif)
  */
-export function sanitizeJson(obj: any, maxDepth: number = 5): any {
+export function sanitizeJson(obj: unknown, maxDepth: number = 5): unknown {
   if (maxDepth <= 0) return null;
 
   if (obj === null || obj === undefined) return null;
@@ -181,12 +181,12 @@ export function sanitizeJson(obj: any, maxDepth: number = 5): any {
   }
 
   if (typeof obj === "object") {
-    const sanitized: any = {};
+    const sanitized: Record<string, unknown> = {};
     const keys = Object.keys(obj).slice(0, 100); // Max 100 clés
 
     for (const key of keys) {
       const sanitizedKey = sanitizeString(key);
-      sanitized[sanitizedKey] = sanitizeJson(obj[key], maxDepth - 1);
+      sanitized[sanitizedKey] = sanitizeJson((obj as Record<string, unknown>)[key], maxDepth - 1);
     }
 
     return sanitized;

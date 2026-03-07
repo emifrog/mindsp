@@ -1,8 +1,8 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import getServerSession from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 // Schéma de validation pour création de liste
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const onlyPublic = searchParams.get("public") === "true";
     const onlyMine = searchParams.get("mine") === "true";
 
-    const where: any = {
+    const where: Prisma.MailingListWhereInput = {
       tenantId: session.user.tenantId,
     };
 
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
 // POST /api/messaging/lists - Créer une liste de diffusion
 export async function POST(request: NextRequest) {
   try {
-    const session = (await getServerSession(authOptions)) as any;
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }

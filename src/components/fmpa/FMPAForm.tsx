@@ -120,11 +120,11 @@ export function FMPAForm({ initialData, onSuccess }: FMPAFormProps) {
       } else {
         router.push(`/fmpa/${fmpa.id}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {

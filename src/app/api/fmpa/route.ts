@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { createFMPASchema } from "@/lib/validations/fmpa";
 import {
   parsePaginationParams,
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     const { page, limit } = parsePaginationParams(searchParams);
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where: any = {
+    const where: Prisma.FMPAWhereInput = {
       tenantId: session.user.tenantId,
     };
 
@@ -136,12 +137,12 @@ export async function POST(request: NextRequest) {
     await invalidateFMPACache(session.user.tenantId);
 
     return NextResponse.json(fmpa, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur POST /api/fmpa:", error);
 
-    if (error.name === "ZodError") {
+    if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
-        { error: "Données invalides", details: error.errors },
+        { error: "Données invalides", details: (error as any).errors },
         { status: 400 }
       );
     }

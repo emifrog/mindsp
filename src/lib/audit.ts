@@ -85,10 +85,10 @@ export interface AuditLogData {
   entity: AuditEntity;
   entityId?: string;
   changes?: {
-    before?: any;
-    after?: any;
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -112,13 +112,13 @@ export async function logAudit(data: AuditLogData): Promise<void> {
         action: data.action,
         entity: data.entity,
         entityId: data.entityId,
-        changes: data.changes ? (data.changes as any) : undefined,
+        changes: data.changes ? (data.changes as object) : undefined,
         metadata: {
           ipAddress,
           userAgent,
           timestamp: new Date().toISOString(),
           ...data.metadata,
-        } as any,
+        } as object,
       },
     });
   } catch (error) {
@@ -135,7 +135,7 @@ export async function logDeletion(
   tenantId: string,
   entity: AuditEntity,
   entityId: string,
-  dataBeforeDeletion: any
+  dataBeforeDeletion: Record<string, unknown>
 ): Promise<void> {
   const action = `DELETE_${entity}` as AuditAction;
 
@@ -160,8 +160,8 @@ export async function logUpdate(
   tenantId: string,
   entity: AuditEntity,
   entityId: string,
-  before: any,
-  after: any
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
 ): Promise<void> {
   const action = `UPDATE_${entity}` as AuditAction;
 
@@ -186,7 +186,7 @@ export async function logCreation(
   tenantId: string,
   entity: AuditEntity,
   entityId: string,
-  data: any
+  data: Record<string, unknown>
 ): Promise<void> {
   const action = `CREATE_${entity}` as AuditAction;
 
@@ -237,7 +237,7 @@ export async function logExport(
   userId: string,
   tenantId: string,
   exportType: string,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<void> {
   await logAudit({
     userId,
@@ -290,7 +290,7 @@ export async function logFailedLogin(
 export async function getUserAuditLogs(
   userId: string,
   limit: number = 50
-): Promise<any[]> {
+): Promise<Awaited<ReturnType<typeof prisma.auditLog.findMany>>> {
   return prisma.auditLog.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -304,7 +304,7 @@ export async function getUserAuditLogs(
 export async function getTenantAuditLogs(
   tenantId: string,
   limit: number = 100
-): Promise<any[]> {
+): Promise<Awaited<ReturnType<typeof prisma.auditLog.findMany>>> {
   return prisma.auditLog.findMany({
     where: { tenantId },
     orderBy: { createdAt: "desc" },
@@ -319,7 +319,7 @@ export async function getEntityAuditLogs(
   entity: AuditEntity,
   entityId: string,
   limit: number = 50
-): Promise<any[]> {
+): Promise<Awaited<ReturnType<typeof prisma.auditLog.findMany>>> {
   return prisma.auditLog.findMany({
     where: {
       entity,

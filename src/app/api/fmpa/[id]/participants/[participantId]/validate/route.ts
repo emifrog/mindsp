@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const validateSchema = z.object({
@@ -70,7 +70,7 @@ export async function PATCH(
     }
 
     // Mettre à jour la participation
-    const updateData: any = {
+    const updateData: Prisma.ParticipationUpdateInput = {
       status: data.status,
       validatedBy: session.user.id,
       validatedAt: new Date(),
@@ -101,13 +101,13 @@ export async function PATCH(
     });
 
     return NextResponse.json(updatedParticipation);
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       "Erreur PATCH /api/fmpa/[id]/participants/[participantId]/validate:",
       error
     );
 
-    if (error.name === "ZodError") {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
         { status: 400 }

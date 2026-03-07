@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // GET /api/calendar/availability - Liste des disponibilités
 export async function GET(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    const where: any = {
+    const where: Prisma.AvailabilityWhereInput = {
       tenantId: session.user.tenantId,
       userId,
     };

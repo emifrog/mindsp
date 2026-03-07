@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import {
   startOfMonth,
   endOfMonth,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Construire les filtres
-    const fmpaFilter: any = {
+    const fmpaFilter: Prisma.FMPAWhereInput = {
       tenantId: session.user.tenantId,
       status: "COMPLETED",
       startDate: {

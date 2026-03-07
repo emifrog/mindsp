@@ -1,8 +1,8 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
 import getServerSession from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const createQualificationSchema = z.object({
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const personnelFileId = searchParams.get("personnelFileId");
     const status = searchParams.get("status");
 
-    const where: any = {};
+    const where: Prisma.QualificationWhereInput = {};
     if (personnelFileId) where.personnelFileId = personnelFileId;
     if (status) where.status = status;
 
