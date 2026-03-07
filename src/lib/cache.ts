@@ -5,20 +5,24 @@
 
 import { Redis } from "@upstash/redis";
 
-// Vérifier les variables d'environnement
-if (!process.env.UPSTASH_REDIS_REST_URL) {
-  throw new Error("UPSTASH_REDIS_REST_URL is required");
-}
+// Instance Redis partagée (lazy pour éviter le crash au build)
+let _redis: Redis | null = null;
 
-if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error("UPSTASH_REDIS_REST_TOKEN is required");
+function getRedis(): Redis {
+  if (!_redis) {
+    if (!process.env.UPSTASH_REDIS_REST_URL) {
+      throw new Error("UPSTASH_REDIS_REST_URL is required");
+    }
+    if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
+      throw new Error("UPSTASH_REDIS_REST_TOKEN is required");
+    }
+    _redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  }
+  return _redis;
 }
-
-// Instance Redis partagée
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
 
 /**
  * TTL par défaut pour différents types de données (en secondes)
@@ -64,7 +68,7 @@ export class CacheService {
    */
   static async get<T>(key: string): Promise<T | null> {
     try {
-      const value = await redis.get<T>(key);
+      const value = await getRedis().get<T>(key);
       return value;
     } catch (error) {
       console.error(`Cache GET error for key ${key}:`, error);
@@ -82,7 +86,7 @@ export class CacheService {
   ): Promise<boolean> {
     try {
       const { ttl = CACHE_TTL.LIST_SHORT } = options;
-      await redis.set(key, value, { ex: ttl });
+      await getRedis().set(key, value, { ex: ttl });
       return true;
     } catch (error) {
       console.error(`Cache SET error for key ${key}:`, error);
@@ -95,7 +99,7 @@ export class CacheService {
    */
   static async delete(key: string): Promise<boolean> {
     try {
-      await redis.del(key);
+      await getRedis().del(key);
       return true;
     } catch (error) {
       console.error(`Cache DELETE error for key ${key}:`, error);
@@ -108,10 +112,11 @@ export class CacheService {
    */
   static async deletePattern(pattern: string): Promise<number> {
     try {
-      const keys = await redis.keys(pattern);
+      const r = getRedis();
+      const keys = await r.keys(pattern);
       if (keys.length === 0) return 0;
 
-      await redis.del(...keys);
+      await r.del(...keys);
       return keys.length;
     } catch (error) {
       console.error(`Cache DELETE PATTERN error for ${pattern}:`, error);
@@ -124,7 +129,7 @@ export class CacheService {
    */
   static async exists(key: string): Promise<boolean> {
     try {
-      const result = await redis.exists(key);
+      const result = await getRedis().exists(key);
       return result === 1;
     } catch (error) {
       console.error(`Cache EXISTS error for key ${key}:`, error);
@@ -161,7 +166,7 @@ export class CacheService {
    */
   static async increment(key: string, amount: number = 1): Promise<number> {
     try {
-      return await redis.incrby(key, amount);
+      return await getRedis().incrby(key, amount);
     } catch (error) {
       console.error(`Cache INCREMENT error for key ${key}:`, error);
       return 0;
@@ -173,7 +178,7 @@ export class CacheService {
    */
   static async expire(key: string, seconds: number): Promise<boolean> {
     try {
-      await redis.expire(key, seconds);
+      await getRedis().expire(key, seconds);
       return true;
     } catch (error) {
       console.error(`Cache EXPIRE error for key ${key}:`, error);

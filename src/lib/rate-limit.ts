@@ -1,50 +1,65 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Vérifier que les variables d'environnement sont définies
-if (!process.env.UPSTASH_REDIS_REST_URL) {
-  throw new Error("UPSTASH_REDIS_REST_URL is required");
+// Lazy init pour éviter le crash au build
+function getRedis(): Redis {
+  if (!process.env.UPSTASH_REDIS_REST_URL) {
+    throw new Error("UPSTASH_REDIS_REST_URL is required");
+  }
+  if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
+    throw new Error("UPSTASH_REDIS_REST_TOKEN is required");
+  }
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
 }
 
-if (!process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error("UPSTASH_REDIS_REST_TOKEN is required");
+function createLimiter(prefix: string, limiter: ReturnType<typeof Ratelimit.slidingWindow>): Ratelimit {
+  return new Ratelimit({
+    redis: getRedis(),
+    limiter,
+    analytics: true,
+    prefix,
+  });
 }
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+// Rate limiters (lazy via getter)
+let _apiLimiter: Ratelimit;
+let _authLimiter: Ratelimit;
+let _registerLimiter: Ratelimit;
+let _sensitiveLimiter: Ratelimit;
 
 // Rate limiter global pour les API (100 requêtes par minute)
-export const apiLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, "1m"),
-  analytics: true,
-  prefix: "ratelimit:api",
+export const apiLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    if (!_apiLimiter) _apiLimiter = createLimiter("ratelimit:api", Ratelimit.slidingWindow(100, "1m"));
+    return (_apiLimiter as any)[prop];
+  }
 });
 
 // Rate limiter strict pour l'authentification (5 tentatives par 15 minutes)
-export const authLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, "15m"),
-  analytics: true,
-  prefix: "ratelimit:auth",
+export const authLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    if (!_authLimiter) _authLimiter = createLimiter("ratelimit:auth", Ratelimit.slidingWindow(5, "15m"));
+    return (_authLimiter as any)[prop];
+  }
 });
 
 // Rate limiter pour l'enregistrement (3 créations par heure)
-export const registerLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(3, "1h"),
-  analytics: true,
-  prefix: "ratelimit:register",
+export const registerLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    if (!_registerLimiter) _registerLimiter = createLimiter("ratelimit:register", Ratelimit.slidingWindow(3, "1h"));
+    return (_registerLimiter as any)[prop];
+  }
 });
 
 // Rate limiter pour les actions sensibles (10 par minute)
-export const sensitiveLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, "1m"),
-  analytics: true,
-  prefix: "ratelimit:sensitive",
+export const sensitiveLimiter = new Proxy({} as Ratelimit, {
+  get(_, prop) {
+    if (!_sensitiveLimiter) _sensitiveLimiter = createLimiter("ratelimit:sensitive", Ratelimit.slidingWindow(10, "1m"));
+    return (_sensitiveLimiter as any)[prop];
+  }
 });
 
 /**
