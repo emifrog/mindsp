@@ -14,14 +14,18 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
         tenantSlug: { label: "Tenant", type: "text" },
       },
-      async authorize(credentials: Record<string, string> | undefined) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email et mot de passe requis");
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+        const tenantSlug = (credentials.tenantSlug as string) || "sdis13";
+
         // Trouver le tenant
         const tenant = await prisma.tenant.findUnique({
-          where: { slug: credentials.tenantSlug || "sdis13" },
+          where: { slug: tenantSlug },
         });
 
         if (!tenant) {
@@ -33,7 +37,7 @@ export const authOptions = {
           where: {
             tenantId_email: {
               tenantId: tenant.id,
-              email: credentials.email,
+              email: email,
             },
           },
           include: {
@@ -52,7 +56,7 @@ export const authOptions = {
 
         // Vérifier le mot de passe
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          password,
           user.passwordHash
         );
 

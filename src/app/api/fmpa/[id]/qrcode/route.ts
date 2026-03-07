@@ -28,7 +28,7 @@ export async function GET(
     }
 
     // Générer le QR code
-    const qrCodeDataURL = await generateFMPAQRCode(fmpa.id, fmpa.qrCode);
+    const qrCodeDataURL = await generateFMPAQRCode(fmpa.id, fmpa.qrCode || fmpa.id);
 
     return NextResponse.json({
       qrCode: qrCodeDataURL,

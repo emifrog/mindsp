@@ -202,7 +202,7 @@ async function main() {
     const numParticipants = Math.floor(Math.random() * 2) + 2;
     for (let j = 0; j < numParticipants; j++) {
       const user = users1[j % users1.length];
-      const statuses = ["REGISTERED", "CONFIRMED", "CONFIRMED"];
+      const statuses = ["REGISTERED", "CONFIRMED", "CONFIRMED"] as const;
       const status = statuses[Math.floor(Math.random() * statuses.length)];
 
       participations.push(
@@ -236,7 +236,7 @@ async function main() {
       maxParticipants: 12,
       minParticipants: 6,
       price: 0,
-      instructor: "Commandant Durand",
+      instructorId: admin1.id,
       status: "OPEN",
       createdById: admin1.id,
     },

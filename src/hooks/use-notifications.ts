@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./use-auth";
-import { useSocket } from "./use-socket";
 import { useToast } from "./use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface Notification {
   id: string;
@@ -15,7 +15,6 @@ interface Notification {
 
 export function useNotifications() {
   const { user } = useAuth();
-  const { socket } = useSocket();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -43,27 +42,32 @@ export function useNotifications() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Écouter les nouvelles notifications via Socket.IO
+  // Écouter les nouvelles notifications via Supabase Realtime
   useEffect(() => {
-    if (!socket) return;
+    if (!user?.id) return;
 
-    const handleNotification = (notification: Notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+    const channel = supabase.channel(`notifications:${user.id}`);
 
-      // Afficher un toast
-      toast({
-        title: notification.title,
-        description: notification.message,
-      });
-    };
+    channel
+      .on(
+        "broadcast",
+        { event: "new-notification" },
+        ({ payload }: { payload: Notification }) => {
+          setNotifications((prev) => [payload, ...prev]);
+          setUnreadCount((prev) => prev + 1);
 
-    socket.on("notification", handleNotification);
+          toast({
+            title: payload.title,
+            description: payload.message,
+          });
+        }
+      )
+      .subscribe();
 
     return () => {
-      socket.off("notification", handleNotification);
+      supabase.removeChannel(channel);
     };
-  }, [socket, toast]);
+  }, [user?.id, toast]);
 
   const markAsRead = async (notificationId: string) => {
     try {
