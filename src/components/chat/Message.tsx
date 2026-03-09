@@ -62,7 +62,7 @@ export function Message({ message, showAvatar }: MessageProps) {
       <div className="flex gap-3 opacity-50">
         {showAvatar && (
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-            <Icon name="fluent-emoji:ghost" size="md" />
+            <Icon name="👻" size="md" />
           </div>
         )}
         {!showAvatar && <div className="w-10" />}

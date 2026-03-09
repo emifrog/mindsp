@@ -97,19 +97,19 @@ export default function SearchPage() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "chat":
-        return "fluent-emoji:speech-balloon";
+        return "💬";
       case "mail":
-        return "fluent-emoji:incoming-envelope";
+        return "📨";
       case "fmpa":
-        return "fluent-emoji:fire-engine";
+        return "🚒";
       case "formation":
-        return "fluent-emoji:graduation-cap";
+        return "🎓";
       case "document":
-        return "fluent-emoji:page-facing-up";
+        return "📄";
       case "personnel":
-        return "fluent-emoji:bust-in-silhouette";
+        return "👤";
       default:
-        return "fluent-emoji:magnifying-glass-tilted-left";
+        return "🔍";
     }
   };
 
@@ -181,7 +181,7 @@ export default function SearchPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="mb-4 flex items-center gap-3 text-3xl font-bold">
-          <Icon name="fluent-emoji:magnifying-glass-tilted-left" size="xl" />
+          <Icon name="🔍" size="xl" />
           Recherche Avancée
         </h1>
 
@@ -309,7 +309,7 @@ export default function SearchPage() {
       {!query && (
         <div className="py-16 text-center">
           <Icon
-            name="fluent-emoji:magnifying-glass-tilted-left"
+            name="🔍"
             size="2xl"
             className="mx-auto mb-4 opacity-50"
           />

@@ -105,34 +105,34 @@ export interface NotificationPreferences {
 // Configuration des icônes par type
 export const NOTIFICATION_ICONS: Record<NotificationType, string> = {
   // FMPA
-  FMPA_CREATED: "fluent-emoji:fire",
-  FMPA_UPDATED: "fluent-emoji:memo",
-  FMPA_CANCELLED: "fluent-emoji:cross-mark",
-  FMPA_REMINDER: "fluent-emoji:alarm-clock",
+  FMPA_CREATED: "🔥",
+  FMPA_UPDATED: "📝",
+  FMPA_CANCELLED: "❌",
+  FMPA_REMINDER: "⏰",
 
   // Chat
-  CHAT_MESSAGE: "fluent-emoji:speech-balloon",
-  CHAT_MENTION: "fluent-emoji:waving-hand",
-  CHAT_REACTION: "fluent-emoji:red-heart",
-  CHAT_CHANNEL_INVITE: "fluent-emoji:envelope-with-arrow",
+  CHAT_MESSAGE: "💬",
+  CHAT_MENTION: "👋",
+  CHAT_REACTION: "❤️",
+  CHAT_CHANNEL_INVITE: "📨",
 
   // Mailbox
-  MAIL_RECEIVED: "fluent-emoji:incoming-envelope",
-  MAIL_IMPORTANT: "fluent-emoji:exclamation-mark",
+  MAIL_RECEIVED: "📨",
+  MAIL_IMPORTANT: "❗",
 
   // Formation
-  FORMATION_APPROVED: "fluent-emoji:check-mark-button",
-  FORMATION_REJECTED: "fluent-emoji:cross-mark",
-  FORMATION_REMINDER: "fluent-emoji:graduation-cap",
+  FORMATION_APPROVED: "✅",
+  FORMATION_REJECTED: "❌",
+  FORMATION_REMINDER: "🎓",
 
   // Événements
-  EVENT_INVITATION: "fluent-emoji:calendar",
-  EVENT_REMINDER: "fluent-emoji:alarm-clock",
-  EVENT_UPDATED: "fluent-emoji:memo",
+  EVENT_INVITATION: "📅",
+  EVENT_REMINDER: "⏰",
+  EVENT_UPDATED: "📝",
 
   // Système
-  SYSTEM: "fluent-emoji:information",
-  ANNOUNCEMENT: "fluent-emoji:loudspeaker",
+  SYSTEM: "ℹ️",
+  ANNOUNCEMENT: "📢",
 };
 
 // Couleurs par priorité

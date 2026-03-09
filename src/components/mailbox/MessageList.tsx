@@ -104,7 +104,7 @@ export function MessageList({
           {filteredMessages.length === 0 ? (
             <div className="py-12 text-center">
               <Icon
-                name="fluent-emoji:empty-nest"
+                name="📭"
                 size="2xl"
                 className="mx-auto mb-2"
               />
@@ -124,7 +124,7 @@ export function MessageList({
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     {message.recipientInfo?.isStarred && (
-                      <Icon name="fluent-emoji:star" size="sm" />
+                      <Icon name="⭐" size="sm" />
                     )}
                     <span
                       className={cn(

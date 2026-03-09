@@ -44,7 +44,7 @@ export function MessageView({ message, onClose }: MessageViewProps) {
           </Button>
           <div className="flex-1" />
           <Button variant="ghost" size="icon">
-            <Icon name="fluent-emoji:star" size="sm" />
+            <Icon name="⭐" size="sm" />
           </Button>
           <Button variant="ghost" size="icon">
             <Icon name={Icons.action.delete} size="sm" />

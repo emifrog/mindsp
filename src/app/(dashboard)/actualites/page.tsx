@@ -42,13 +42,13 @@ interface NewsArticle {
 }
 
 const categoryIcons: Record<string, string> = {
-  GENERAL: "fluent-emoji:information",
+  GENERAL: "ℹ️",
   FORMATION: Icons.nav.formations,
-  INTERVENTION: "fluent-emoji:fire-engine",
-  PREVENTION: "fluent-emoji:warning",
-  MATERIEL: "fluent-emoji:package",
-  EVENEMENT: "fluent-emoji:party-popper",
-  ADMINISTRATIF: "fluent-emoji:clipboard",
+  INTERVENTION: "🚒",
+  PREVENTION: "⚠️",
+  MATERIEL: "📦",
+  EVENEMENT: "🎉",
+  ADMINISTRATIF: "📋",
 };
 
 const categoryLabels: Record<string, string> = {
@@ -144,7 +144,7 @@ export default function ActualitesPage() {
       {pinnedArticles.length > 0 && (
         <div>
           <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-            <Icon name="fluent-emoji:pushpin" size="md" />À la une
+            <Icon name="📌" size="md" />À la une
           </h2>
           <div className="grid gap-6 md:grid-cols-2">
             {pinnedArticles.map((article) => (
@@ -212,7 +212,7 @@ export default function ActualitesPage() {
       {regularArticles.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Icon name="fluent-emoji:empty-nest" size="2xl" className="mb-4" />
+            <Icon name="📭" size="2xl" className="mb-4" />
             <p className="text-center text-muted-foreground">
               Aucune actualité disponible
             </p>

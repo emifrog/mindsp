@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 // GET /api/news - Liste des actualités
 export async function GET(request: NextRequest) {
@@ -35,6 +36,13 @@ export async function GET(request: NextRequest) {
       where.isPublished = true;
     }
 
+    // Vérifier le cache
+    const cacheKey = `news:${session.user.tenantId}:${page}:${limit}:${category || ""}:${portalId || ""}:${published || ""}`;
+    const cached = await CacheService.get<{ articles: unknown[]; pagination: unknown }>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     const [articles, total] = await Promise.all([
       prisma.newsArticle.findMany({
         where,
@@ -62,7 +70,7 @@ export async function GET(request: NextRequest) {
       prisma.newsArticle.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const response = {
       articles,
       pagination: {
         page,
@@ -70,7 +78,11 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    };
+
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur GET /api/news:", error);
     return NextResponse.json(

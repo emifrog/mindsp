@@ -72,7 +72,7 @@ export function Header() {
         {/* Recherche */}
         <Link href="/search">
           <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Icon name="fluent-emoji:magnifying-glass-tilted-left" size="lg" />
+            <Icon name="🔍" size="lg" />
             <span className="sr-only">Recherche</span>
           </Button>
         </Link>

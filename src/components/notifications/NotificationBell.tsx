@@ -36,7 +36,7 @@ export function NotificationBell() {
 
   const getNotificationIcon = (type: NotificationType, customIcon?: string) => {
     if (customIcon) return customIcon;
-    return NOTIFICATION_ICONS[type] || "fluent-emoji:bell";
+    return NOTIFICATION_ICONS[type] || "🔔";
   };
 
   const getPriorityColor = (priority: NotificationPriority) => {
@@ -78,7 +78,7 @@ export function NotificationBell() {
         {notifications.length === 0 ? (
           <div className="py-12 text-center">
             <Icon
-              name="fluent-emoji:bell"
+              name="🔔"
               size="2xl"
               className="mx-auto mb-2 opacity-50"
             />

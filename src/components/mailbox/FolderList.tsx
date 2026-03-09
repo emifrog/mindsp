@@ -42,32 +42,32 @@ export function FolderList({ currentFolder, onSelectFolder }: FolderListProps) {
     {
       id: "INBOX",
       name: "Boîte de réception",
-      icon: "fluent-emoji:inbox-tray",
+      icon: "📥",
       count: stats.inbox,
       badge: stats.unread,
     },
     {
       id: "SENT",
       name: "Envoyés",
-      icon: "fluent-emoji:outbox-tray",
+      icon: "📤",
       count: stats.sent,
     },
     {
       id: "DRAFTS",
       name: "Brouillons",
-      icon: "fluent-emoji:memo",
+      icon: "📝",
       count: stats.drafts,
     },
     {
       id: "ARCHIVE",
       name: "Archives",
-      icon: "fluent-emoji:file-cabinet",
+      icon: "🗄️",
       count: stats.archived,
     },
     {
       id: "TRASH",
       name: "Corbeille",
-      icon: "fluent-emoji:wastebasket",
+      icon: "🗑️",
     },
   ];
 
@@ -118,7 +118,7 @@ export function FolderList({ currentFolder, onSelectFolder }: FolderListProps) {
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Icon name="fluent-emoji:star" size="md" />
+                  <Icon name="⭐" size="md" />
                   <span className="font-medium">Étoilés</span>
                 </div>
                 <span className="text-xs text-muted-foreground">

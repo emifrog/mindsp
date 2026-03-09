@@ -81,7 +81,7 @@ export default function PortailsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold">
-            <Icon name="fluent-emoji:door" size="xl" />
+            <Icon name="🚪" size="xl" />
             Portails
           </h1>
           <p className="text-muted-foreground">
@@ -97,7 +97,7 @@ export default function PortailsPage() {
             <CardTitle className="text-sm font-medium">
               Portails Actifs
             </CardTitle>
-            <Icon name="fluent-emoji:check-mark-button" size="md" />
+            <Icon name="✅" size="md" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -109,7 +109,7 @@ export default function PortailsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pages Totales</CardTitle>
-            <Icon name="fluent-emoji:file-folder" size="md" />
+            <Icon name="📁" size="md" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -121,7 +121,7 @@ export default function PortailsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Actualités</CardTitle>
-            <Icon name="fluent-emoji:newspaper" size="md" />
+            <Icon name="📰" size="md" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -135,7 +135,7 @@ export default function PortailsPage() {
       {portals.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Icon name="fluent-emoji:empty-nest" size="2xl" className="mb-4" />
+            <Icon name="📭" size="2xl" className="mb-4" />
             <p className="text-center text-muted-foreground">
               Aucun portail disponible pour le moment
             </p>
@@ -155,7 +155,7 @@ export default function PortailsPage() {
                     {portal.icon ? (
                       <Icon name={portal.icon} size="xl" />
                     ) : (
-                      <Icon name="fluent-emoji:door" size="xl" />
+                      <Icon name="🚪" size="xl" />
                     )}
                     <div>
                       <CardTitle>{portal.name}</CardTitle>
@@ -189,7 +189,7 @@ export default function PortailsPage() {
                   {portal.isPublic && (
                     <Badge variant="outline">
                       <Icon
-                        name="fluent-emoji:globe-showing-americas"
+                        name="🌎"
                         size="xs"
                         className="mr-1"
                       />
@@ -199,7 +199,7 @@ export default function PortailsPage() {
                   {portal.requiresAuth && (
                     <Badge variant="outline">
                       <Icon
-                        name="fluent-emoji:locked"
+                        name="🔒"
                         size="xs"
                         className="mr-1"
                       />

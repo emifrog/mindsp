@@ -57,13 +57,13 @@ interface PortalDocument {
 }
 
 const categoryIcons: Record<string, string> = {
-  PROCEDURE: "fluent-emoji:clipboard",
+  PROCEDURE: "📋",
   FORMATION: Icons.nav.formations,
-  TECHNIQUE: "fluent-emoji:gear",
-  ADMINISTRATIF: "fluent-emoji:file-folder",
-  SECURITE: "fluent-emoji:locked",
-  MATERIEL: "fluent-emoji:package",
-  AUTRE: "fluent-emoji:document",
+  TECHNIQUE: "⚙️",
+  ADMINISTRATIF: "📁",
+  SECURITE: "🔒",
+  MATERIEL: "📦",
+  AUTRE: "📄",
 };
 
 const categoryLabels: Record<string, string> = {
@@ -178,7 +178,7 @@ export default function DocumentsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Procédures</CardTitle>
-            <Icon name="fluent-emoji:clipboard" size="md" />
+            <Icon name="📋" size="md" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -258,7 +258,7 @@ export default function DocumentsPage() {
       {filteredDocuments.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Icon name="fluent-emoji:empty-nest" size="2xl" className="mb-4" />
+            <Icon name="📭" size="2xl" className="mb-4" />
             <p className="text-center text-muted-foreground">
               Aucun document trouvé
             </p>

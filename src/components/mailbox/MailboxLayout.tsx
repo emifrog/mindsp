@@ -80,7 +80,7 @@ export function MailboxLayout() {
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
               <Icon
-                name="fluent-emoji:envelope"
+                name="✉️"
                 size="2xl"
                 className="mx-auto mb-4 text-muted-foreground"
               />

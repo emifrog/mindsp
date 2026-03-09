@@ -36,21 +36,21 @@ interface UploadDocumentDialogProps {
 }
 
 const categories = [
-  { value: "PROCEDURE", label: "Procédure", icon: "fluent-emoji:clipboard" },
+  { value: "PROCEDURE", label: "Procédure", icon: "📋" },
   {
     value: "FORMATION",
     label: "Formation",
-    icon: "fluent-emoji:graduation-cap",
+    icon: "🎓",
   },
-  { value: "TECHNIQUE", label: "Technique", icon: "fluent-emoji:gear" },
+  { value: "TECHNIQUE", label: "Technique", icon: "⚙️" },
   {
     value: "ADMINISTRATIF",
     label: "Administratif",
-    icon: "fluent-emoji:file-folder",
+    icon: "📁",
   },
-  { value: "SECURITE", label: "Sécurité", icon: "fluent-emoji:locked" },
-  { value: "MATERIEL", label: "Matériel", icon: "fluent-emoji:package" },
-  { value: "AUTRE", label: "Autre", icon: "fluent-emoji:document" },
+  { value: "SECURITE", label: "Sécurité", icon: "🔒" },
+  { value: "MATERIEL", label: "Matériel", icon: "📦" },
+  { value: "AUTRE", label: "Autre", icon: "📄" },
 ];
 
 export function UploadDocumentDialog({
@@ -153,7 +153,7 @@ export function UploadDocumentDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Icon name="fluent-emoji:page-facing-up" size="lg" />
+              <Icon name="📄" size="lg" />
               Uploader un document
             </DialogTitle>
             <DialogDescription>

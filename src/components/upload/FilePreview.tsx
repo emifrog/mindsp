@@ -33,22 +33,22 @@ export function FilePreview({
   };
 
   const getFileIcon = (type?: string): string => {
-    if (!type) return "fluent-emoji:page-facing-up";
+    if (!type) return "📄";
 
-    if (type.startsWith("image/")) return "fluent-emoji:framed-picture";
-    if (type.startsWith("video/")) return "fluent-emoji:film-frames";
-    if (type.startsWith("audio/")) return "fluent-emoji:musical-note";
-    if (type.includes("pdf")) return "fluent-emoji:page-with-curl";
+    if (type.startsWith("image/")) return "🖼️";
+    if (type.startsWith("video/")) return "🎞️";
+    if (type.startsWith("audio/")) return "🎵";
+    if (type.includes("pdf")) return "📃";
     if (type.includes("word") || type.includes("document"))
-      return "fluent-emoji:blue-book";
+      return "📘";
     if (type.includes("excel") || type.includes("spreadsheet"))
-      return "fluent-emoji:green-book";
+      return "📗";
     if (type.includes("powerpoint") || type.includes("presentation"))
-      return "fluent-emoji:orange-book";
+      return "📙";
     if (type.includes("zip") || type.includes("rar") || type.includes("7z"))
-      return "fluent-emoji:package";
+      return "📦";
 
-    return "fluent-emoji:page-facing-up";
+    return "📄";
   };
 
   const isImage = file.type?.startsWith("image/");
@@ -95,7 +95,7 @@ export function FilePreview({
         <div className="flex shrink-0 items-center gap-1">
           <Button variant="ghost" size="icon" asChild className="h-8 w-8">
             <a href={file.url} target="_blank" rel="noopener noreferrer">
-              <Icon name="fluent-emoji:eyes" size="sm" />
+              <Icon name="👀" size="sm" />
             </a>
           </Button>
 

@@ -86,15 +86,15 @@ export function CreateChannelDialog({
 
   const iconOptions = [
     { value: "none", label: "Aucune icône" },
-    { value: "fluent-emoji:speech-balloon", label: "💬 Bulle" },
-    { value: "fluent-emoji:fire", label: "🔥 Feu" },
-    { value: "fluent-emoji:rocket", label: "🚀 Fusée" },
-    { value: "fluent-emoji:star", label: "⭐ Étoile" },
-    { value: "fluent-emoji:party-popper", label: "🎉 Fête" },
-    { value: "fluent-emoji:laptop", label: "💻 Ordinateur" },
-    { value: "fluent-emoji:books", label: "📚 Livres" },
-    { value: "fluent-emoji:megaphone", label: "📣 Mégaphone" },
-    { value: "fluent-emoji:light-bulb", label: "💡 Ampoule" },
+    { value: "💬", label: "💬 Bulle" },
+    { value: "🔥", label: "🔥 Feu" },
+    { value: "🚀", label: "🚀 Fusée" },
+    { value: "⭐", label: "⭐ Étoile" },
+    { value: "🎉", label: "🎉 Fête" },
+    { value: "💻", label: "💻 Ordinateur" },
+    { value: "📚", label: "📚 Livres" },
+    { value: "📣", label: "📣 Mégaphone" },
+    { value: "💡", label: "💡 Ampoule" },
   ];
 
   return (
@@ -109,7 +109,7 @@ export function CreateChannelDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Icon name="fluent-emoji:speech-balloon" size="lg" />
+              <Icon name="💬" size="lg" />
               Créer un nouveau canal
             </DialogTitle>
             <DialogDescription>
@@ -169,7 +169,7 @@ export function CreateChannelDialog({
                 <SelectContent>
                   <SelectItem value="PUBLIC">
                     <div className="flex items-center gap-2">
-                      <Icon name="fluent-emoji:speech-balloon" size="sm" />
+                      <Icon name="💬" size="sm" />
                       <div>
                         <p className="font-medium">Public</p>
                         <p className="text-xs text-muted-foreground">
@@ -180,7 +180,7 @@ export function CreateChannelDialog({
                   </SelectItem>
                   <SelectItem value="PRIVATE">
                     <div className="flex items-center gap-2">
-                      <Icon name="fluent-emoji:locked" size="sm" />
+                      <Icon name="🔒" size="sm" />
                       <div>
                         <p className="font-medium">Privé</p>
                         <p className="text-xs text-muted-foreground">

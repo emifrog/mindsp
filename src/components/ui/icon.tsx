@@ -1,31 +1,27 @@
-import {
-  Icon as IconifyIcon,
-  type IconProps as IconifyIconProps,
-} from "@iconify/react";
 import { cn } from "@/lib/utils";
 
-interface IconProps extends Omit<IconifyIconProps, "icon"> {
+interface IconProps {
   name: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  className?: string;
 }
 
 const sizeMap = {
-  xs: 14,
-  sm: 16,
-  md: 20,
-  lg: 24,
-  xl: 32,
-  "2xl": 40,
+  xs: "text-sm",
+  sm: "text-base",
+  md: "text-xl",
+  lg: "text-2xl",
+  xl: "text-3xl",
+  "2xl": "text-4xl",
 };
 
-export function Icon({ name, size = "md", className, ...props }: IconProps) {
+export function Icon({ name, size = "md", className }: IconProps) {
   return (
-    <IconifyIcon
-      icon={name}
-      width={sizeMap[size]}
-      height={sizeMap[size]}
-      className={cn("inline-block flex-shrink-0", className)}
-      {...props}
-    />
+    <span
+      role="img"
+      className={cn("inline-block flex-shrink-0 leading-none", sizeMap[size], className)}
+    >
+      {name}
+    </span>
   );
 }

@@ -136,7 +136,7 @@ export function FileUploadDropzone({
         ) : (
           <>
             <Icon
-              name="fluent-emoji:cloud-with-lightning-and-rain"
+              name="⛈️"
               size="2xl"
               className={cn(
                 "transition-transform",

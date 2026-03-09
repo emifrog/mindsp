@@ -52,9 +52,9 @@ export function ChannelList({
 
   const getChannelIcon = (channel: ChatChannel) => {
     if (channel.icon) return channel.icon;
-    if (channel.type === "PUBLIC") return "fluent-emoji:speech-balloon";
-    if (channel.type === "PRIVATE") return "fluent-emoji:locked";
-    return "fluent-emoji:bust-in-silhouette";
+    if (channel.type === "PUBLIC") return "💬";
+    if (channel.type === "PRIVATE") return "🔒";
+    return "👤";
   };
 
   const ChannelItem = ({ channel }: { channel: ChatChannel }) => (
@@ -205,7 +205,7 @@ export function ChannelList({
           {filteredChannels.length === 0 && (
             <div className="py-8 text-center">
               <Icon
-                name="fluent-emoji:empty-nest"
+                name="📭"
                 size="2xl"
                 className="mx-auto mb-2"
               />

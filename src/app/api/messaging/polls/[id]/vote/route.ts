@@ -87,17 +87,20 @@ export async function POST(
       },
     });
 
-    // Créer les nouvelles réponses
-    const responses = await Promise.all(
-      data.optionIds.map((optionId) =>
-        prisma.pollResponse.create({
-          data: {
-            optionId,
-            userId: session.user.id,
-          },
-        })
-      )
-    );
+    // Créer les nouvelles réponses en batch
+    await prisma.pollResponse.createMany({
+      data: data.optionIds.map((optionId) => ({
+        optionId,
+        userId: session.user.id,
+      })),
+    });
+
+    const responses = await prisma.pollResponse.findMany({
+      where: {
+        userId: session.user.id,
+        option: { pollId: params.id },
+      },
+    });
 
     // Créer une notification pour l'organisateur (sauf si anonyme)
     if (!poll.anonymous) {

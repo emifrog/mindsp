@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 // GET /api/calendar/events - Liste des événements
 export async function GET(request: NextRequest) {
@@ -32,6 +33,13 @@ export async function GET(request: NextRequest) {
     // Filtrer par type
     if (type) {
       where.type = type;
+    }
+
+    // Vérifier le cache
+    const cacheKey = `calendar:${session.user.tenantId}:${start || ""}:${end || ""}:${type || ""}`;
+    const cached = await CacheService.get<{ events: unknown[] }>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     const events = await prisma.calendarEvent.findMany({
@@ -70,7 +78,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ events });
+    const response = { events };
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur GET /api/calendar/events:", error);
     return NextResponse.json(

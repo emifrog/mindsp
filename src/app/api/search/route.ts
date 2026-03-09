@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 // GET /api/search - Recherche globale avancée
 export async function GET(request: NextRequest) {
@@ -28,6 +29,13 @@ export async function GET(request: NextRequest) {
         },
         total: 0,
       });
+    }
+
+    // Vérifier le cache
+    const cacheKey = `search:${session.user.tenantId}:${query}:${type || "all"}:${dateFrom || ""}:${dateTo || ""}:${limit}`;
+    const cached = await CacheService.get<{ results: Record<string, unknown[]>; total: number; query: string }>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     interface SearchResult {
@@ -355,11 +363,12 @@ export async function GET(request: NextRequest) {
       results.documents.length +
       results.personnel.length;
 
-    return NextResponse.json({
-      results,
-      total,
-      query,
-    });
+    const response = { results, total, query };
+
+    // Mettre en cache (5 minutes)
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur recherche:", error);
     return NextResponse.json(

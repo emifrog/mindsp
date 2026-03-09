@@ -1,130 +1,121 @@
 /**
  * Registry centralisé de toutes les icônes utilisées dans l'app
- * Facilite la maintenance et la cohérence visuelle
+ * Utilise des emojis Unicode natifs (0 KB de bundle)
  */
 
-// ===== NAVIGATION (Colorés) =====
+// ===== NAVIGATION =====
 export const NavigationIcons = {
-  dashboard: "fluent-emoji:house",
-  calendar: "fluent-emoji:calendar",
-  messages: "fluent-emoji:speech-balloon",
-  fmpa: "fluent-emoji:fire",
-  personnel: "fluent-emoji:busts-in-silhouette",
-  formations: "fluent-emoji:graduation-cap",
-  settings: "fluent-emoji:gear",
-  notifications: "fluent-emoji:bell",
-  documents: "fluent-emoji:file-folder",
-  tta: "fluent-emoji:money-bag",
+  dashboard: "\u{1F3E0}",
+  calendar: "\u{1F4C5}",
+  messages: "\u{1F4AC}",
+  fmpa: "\u{1F525}",
+  personnel: "\u{1F465}",
+  formations: "\u{1F393}",
+  settings: "\u2699\uFE0F",
+  notifications: "\u{1F514}",
+  documents: "\u{1F4C1}",
+  tta: "\u{1F4B0}",
 } as const;
 
-// ===== TYPES FMPA (Colorés) =====
+// ===== TYPES FMPA =====
 export const FMPAIcons = {
-  formation: "fluent-emoji:graduation-cap",
-  manoeuvre: "fluent-emoji:fire",
-  presence: "fluent-emoji:fire-engine",
-  all: "solar:folder-bold-duotone",
+  formation: "\u{1F393}",
+  manoeuvre: "\u{1F525}",
+  presence: "\u{1F692}",
+  all: "\u{1F4C2}",
 } as const;
 
-// ===== STATUTS PARTICIPATION (Colorés) =====
+// ===== STATUTS PARTICIPATION =====
 export const StatusIcons = {
-  registered: "fluent-emoji:check-mark-button",
-  present: "fluent-emoji:white-heavy-check-mark",
-  absent: "fluent-emoji:cross-mark",
-  excused: "fluent-emoji:calendar",
-  waiting: "fluent-emoji:hourglass-not-done",
+  registered: "\u2705",
+  present: "\u2714\uFE0F",
+  absent: "\u274C",
+  excused: "\u{1F4C5}",
+  waiting: "\u23F3",
 } as const;
 
-// ===== ACTIONS (Colorés) =====
+// ===== ACTIONS =====
 export const ActionIcons = {
-  add: "fluent-emoji:plus",
-  edit: "fluent-emoji:memo",
-  delete: "fluent-emoji:wastebasket",
-  save: "fluent-emoji:floppy-disk",
-  cancel: "fluent-emoji:cross-mark",
-  search: "fluent-emoji:magnifying-glass-tilted-left",
-  filter: "fluent-emoji:funnel",
-  download: "fluent-emoji:down-arrow",
-  upload: "fluent-emoji:up-arrow",
-  print: "fluent-emoji:printer",
-  share: "fluent-emoji:link",
-  copy: "fluent-emoji:clipboard",
-  refresh: "fluent-emoji:counterclockwise-arrows-button",
-  more: "fluent-emoji:three-dots",
-  file: "fluent-emoji:file-folder",
-  send: "fluent-emoji:rocket",
-  settings: "fluent-emoji:gear",
-  reply: "fluent-emoji:left-arrow-curving-right",
-  forward: "fluent-emoji:right-arrow-curving-left",
-  check: "fluent-emoji:check-mark",
+  add: "\u2795",
+  edit: "\u{1F4DD}",
+  delete: "\u{1F5D1}\uFE0F",
+  save: "\u{1F4BE}",
+  cancel: "\u274C",
+  search: "\u{1F50D}",
+  filter: "\u{1F3AF}",
+  download: "\u2B07\uFE0F",
+  upload: "\u2B06\uFE0F",
+  print: "\u{1F5A8}\uFE0F",
+  share: "\u{1F517}",
+  copy: "\u{1F4CB}",
+  refresh: "\u{1F504}",
+  more: "\u2026",
+  file: "\u{1F4C1}",
+  send: "\u{1F680}",
+  settings: "\u2699\uFE0F",
+  reply: "\u21A9\uFE0F",
+  forward: "\u21AA\uFE0F",
+  check: "\u2714\uFE0F",
 } as const;
 
-// ===== INFORMATIONS (Colorés) =====
+// ===== INFORMATIONS =====
 export const InfoIcons = {
-  date: "fluent-emoji:calendar",
-  time: "fluent-emoji:alarm-clock",
-  location: "fluent-emoji:round-pushpin",
-  users: "fluent-emoji:busts-in-silhouette",
-  user: "fluent-emoji:bust-in-silhouette",
-  phone: "fluent-emoji:telephone",
-  email: "fluent-emoji:e-mail",
-  info: "fluent-emoji:information",
-  warning: "fluent-emoji:warning",
-  success: "fluent-emoji:check-mark-button",
-  error: "fluent-emoji:cross-mark",
+  date: "\u{1F4C5}",
+  time: "\u23F0",
+  location: "\u{1F4CD}",
+  users: "\u{1F465}",
+  user: "\u{1F464}",
+  phone: "\u{1F4DE}",
+  email: "\u{1F4E7}",
+  info: "\u2139\uFE0F",
+  warning: "\u26A0\uFE0F",
+  success: "\u2705",
+  error: "\u274C",
 } as const;
 
 // ===== POMPIERS SPÉCIFIQUES =====
 export const PompierIcons = {
-  // Véhicules
-  camion: "fluent-emoji:fire-engine",
-  ambulance: "fluent-emoji:ambulance",
-
-  // Équipements
-  casque: "noto:rescue-worker-helmet",
-  extincteur: "noto:fire-extinguisher",
-
-  // Situations
-  feu: "fluent-emoji:fire",
-  eau: "fluent-emoji:droplet",
-  secours: "fluent-emoji:sos-button",
-  alerte: "fluent-emoji:alarm-clock",
-  urgence: "fluent-emoji:warning",
-
-  // Lieux
-  caserne: "noto:fire-station",
-
-  // Métiers
-  pompier: "noto:firefighter",
-  medecin: "fluent-emoji:health-worker",
+  camion: "\u{1F692}",
+  ambulance: "\u{1F691}",
+  casque: "\u26D1\uFE0F",
+  extincteur: "\u{1F9EF}",
+  feu: "\u{1F525}",
+  eau: "\u{1F4A7}",
+  secours: "\u{1F198}",
+  alerte: "\u23F0",
+  urgence: "\u26A0\uFE0F",
+  caserne: "\u{1F3E2}",
+  pompier: "\u{1F468}\u200D\u{1F692}",
+  medecin: "\u{1F469}\u200D\u2695\uFE0F",
 } as const;
 
-// ===== MODULES (Colorés) =====
+// ===== MODULES =====
 export const ModuleIcons = {
-  fmpa: "fluent-emoji:fire",
-  messages: "fluent-emoji:speech-balloon",
-  agenda: "fluent-emoji:calendar",
-  personnel: "fluent-emoji:busts-in-silhouette",
-  formations: "fluent-emoji:graduation-cap",
-  materiel: "fluent-emoji:package",
-  documents: "fluent-emoji:file-folder",
-  statistiques: "fluent-emoji:bar-chart",
+  fmpa: "\u{1F525}",
+  messages: "\u{1F4AC}",
+  agenda: "\u{1F4C5}",
+  personnel: "\u{1F465}",
+  formations: "\u{1F393}",
+  materiel: "\u{1F4E6}",
+  documents: "\u{1F4C1}",
+  statistiques: "\u{1F4CA}",
 } as const;
 
-// ===== UI ELEMENTS (Colorés) =====
+// ===== UI ELEMENTS =====
 export const UIIcons = {
-  chevronDown: "fluent-emoji:down-arrow",
-  chevronUp: "fluent-emoji:up-arrow",
-  chevronLeft: "fluent-emoji:left-arrow",
-  chevronRight: "fluent-emoji:right-arrow",
-  arrowLeft: "fluent-emoji:left-arrow",
-  arrowRight: "fluent-emoji:right-arrow",
-  eye: "fluent-emoji:eye",
-  eyeOff: "fluent-emoji:see-no-evil-monkey",
-  logout: "fluent-emoji:door",
-  menu: "fluent-emoji:hamburger",
-  close: "fluent-emoji:cross-mark",
-  expand: "fluent-emoji:magnifying-glass-tilted-right",
-  collapse: "fluent-emoji:magnifying-glass-tilted-left",
+  chevronDown: "\u{1F53D}",
+  chevronUp: "\u{1F53C}",
+  chevronLeft: "\u25C0\uFE0F",
+  chevronRight: "\u25B6\uFE0F",
+  arrowLeft: "\u2B05\uFE0F",
+  arrowRight: "\u27A1\uFE0F",
+  eye: "\u{1F441}\uFE0F",
+  eyeOff: "\u{1F648}",
+  logout: "\u{1F6AA}",
+  menu: "\u2630",
+  close: "\u274C",
+  expand: "\u{1F50D}",
+  collapse: "\u{1F50D}",
 } as const;
 
 // ===== EXPORT GROUPÉ =====

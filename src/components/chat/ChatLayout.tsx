@@ -29,7 +29,7 @@ export function ChatLayout() {
           <div className="border-b bg-gradient-to-r from-primary/10 to-primary/5 p-4">
             <div className="flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-xl font-bold">
-                <Icon name="fluent-emoji:speech-balloon" size="lg" />
+                <Icon name="💬" size="lg" />
                 Chat
               </h2>
               <Button
@@ -74,7 +74,7 @@ export function ChatLayout() {
               <div className="relative mb-6">
                 <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl"></div>
                 <Icon
-                  name="fluent-emoji:speech-balloon"
+                  name="💬"
                   size="2xl"
                   className="relative mx-auto animate-bounce"
                 />
@@ -88,17 +88,17 @@ export function ChatLayout() {
               </p>
               <div className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center justify-center gap-2">
-                  <Icon name="fluent-emoji:speech-balloon" size="sm" />
+                  <Icon name="💬" size="sm" />
                   <span>Canaux publics pour toute l&apos;équipe</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <Icon name="fluent-emoji:locked" size="sm" />
+                  <Icon name="🔒" size="sm" />
                   <span>
                     Canaux privés pour les discussions confidentielles
                   </span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <Icon name="fluent-emoji:bust-in-silhouette" size="sm" />
+                  <Icon name="👤" size="sm" />
                   <span>Messages directs en tête-à-tête</span>
                 </div>
               </div>

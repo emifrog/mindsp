@@ -112,7 +112,7 @@ export function ComposeEmail({ trigger, onSent }: ComposeEmailProps) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Icon name="fluent-emoji:incoming-envelope" size="lg" />
+              <Icon name="📨" size="lg" />
               Nouveau message
             </DialogTitle>
             <DialogDescription>

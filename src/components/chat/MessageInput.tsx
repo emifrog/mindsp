@@ -107,7 +107,7 @@ export function MessageInput({ channelId }: MessageInputProps) {
       <div className="flex items-end gap-2">
         {/* Bouton emoji */}
         <Button variant="ghost" size="icon" className="shrink-0">
-          <Icon name="fluent-emoji:grinning-face" size="md" />
+          <Icon name="😀" size="md" />
         </Button>
 
         {/* Textarea */}

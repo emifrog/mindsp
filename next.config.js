@@ -11,6 +11,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Optimiser les imports de packages lourds (tree-shaking)
+  optimizePackageImports: ["lucide-react", "date-fns", "framer-motion"],
+
   // Experimental features
   experimental: {
     serverActions: {

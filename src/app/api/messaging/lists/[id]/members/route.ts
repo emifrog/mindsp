@@ -59,39 +59,37 @@ export async function POST(
       );
     }
 
-    // Ajouter les membres (ignorer les doublons)
-    const members = await Promise.all(
-      data.userIds.map(async (userId) => {
-        try {
-          return await prisma.mailingListMember.create({
-            data: {
-              listId: params.id,
-              userId,
-              addedById: session.user.id,
-            },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                  avatar: true,
-                },
-              },
-            },
-          });
-        } catch (error) {
-          // Ignorer si déjà membre (unique constraint)
-          return null;
-        }
-      })
-    );
+    // Ajouter les membres en batch (ignorer les doublons avec skipDuplicates)
+    const result = await prisma.mailingListMember.createMany({
+      data: data.userIds.map((userId) => ({
+        listId: params.id,
+        userId,
+        addedById: session.user.id,
+      })),
+      skipDuplicates: true,
+    });
 
-    const addedMembers = members.filter((m) => m !== null);
+    // Récupérer les membres ajoutés pour la réponse
+    const addedMembers = await prisma.mailingListMember.findMany({
+      where: {
+        listId: params.id,
+        userId: { in: data.userIds },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
-      added: addedMembers.length,
+      added: result.count,
       members: addedMembers,
     });
   } catch (error) {

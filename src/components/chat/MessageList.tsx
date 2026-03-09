@@ -104,7 +104,7 @@ export function MessageList({ channelId }: MessageListProps) {
 
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center py-12">
-            <Icon name="fluent-emoji:waving-hand" size="2xl" className="mb-4" />
+            <Icon name="👋" size="2xl" className="mb-4" />
             <h3 className="mb-2 text-lg font-semibold">
               Début de la conversation
             </h3>

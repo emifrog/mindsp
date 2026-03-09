@@ -25,8 +25,8 @@ export function ChannelHeader({
   const getChannelIcon = () => {
     if (channel.icon) return channel.icon;
     if (channel.type === "PUBLIC") return Icons.nav.messages;
-    if (channel.type === "PRIVATE") return "fluent-emoji:locked";
-    return "fluent-emoji:bust-in-silhouette";
+    if (channel.type === "PRIVATE") return "🔒";
+    return "👤";
   };
 
   return (

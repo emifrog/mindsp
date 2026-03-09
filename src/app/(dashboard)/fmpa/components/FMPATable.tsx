@@ -78,7 +78,7 @@ export function FMPATable({ fmpas, onDelete }: FMPATableProps) {
             <TableRow>
               <TableCell colSpan={7} className="h-24 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <Icon name="fluent-emoji:empty-nest" size="xl" />
+                  <Icon name="📭" size="xl" />
                   <p className="text-muted-foreground">Aucune FMPA trouvée</p>
                 </div>
               </TableCell>

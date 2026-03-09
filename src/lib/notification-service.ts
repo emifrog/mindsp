@@ -269,7 +269,7 @@ export class NotificationService {
         type: "CHAT_MESSAGE",
         title: `Nouveau message de ${senderName}`,
         message: content.substring(0, 100),
-        icon: "fluent-emoji:speech-balloon",
+        icon: "💬",
         linkUrl: `/chat?channel=${channelId}&message=${messageId}`,
         priority: "NORMAL",
         sendPush: true,
@@ -298,7 +298,7 @@ export class NotificationService {
         type: "CHAT_MENTION",
         title: `${senderName} vous a mentionné`,
         message: content.substring(0, 100),
-        icon: "fluent-emoji:waving-hand",
+        icon: "👋",
         linkUrl: `/chat?channel=${channelId}&message=${messageId}`,
         priority: "HIGH",
         actionLabel: "Voir le message",
@@ -331,8 +331,8 @@ export class NotificationService {
           : `Nouveau mail de ${senderName}`,
         message: subject,
         icon: isImportant
-          ? "fluent-emoji:exclamation-mark"
-          : "fluent-emoji:incoming-envelope",
+          ? "❗"
+          : "📨",
         linkUrl: `/mailbox?message=${messageId}`,
         priority: isImportant ? "HIGH" : "NORMAL",
         actionLabel: "Lire le mail",
@@ -361,7 +361,7 @@ export class NotificationService {
         type: "CHAT_CHANNEL_INVITE",
         title: `Invitation au canal ${channelName}`,
         message: `${inviterName} vous a invité à rejoindre le canal`,
-        icon: "fluent-emoji:envelope-with-arrow",
+        icon: "📨",
         linkUrl: `/chat?channel=${channelId}`,
         priority: "NORMAL",
         actionLabel: "Rejoindre",

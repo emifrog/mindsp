@@ -4,7 +4,6 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { NavigationLoader } from "@/components/providers/NavigationLoader";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { IconifyProvider } from "@/components/providers/IconifyProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,12 +35,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <IconifyProvider>
-            <SessionProvider>
-              <NavigationLoader />
-              {children}
-            </SessionProvider>
-          </IconifyProvider>
+          <SessionProvider>
+            <NavigationLoader />
+            {children}
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

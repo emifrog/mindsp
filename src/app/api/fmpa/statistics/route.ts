@@ -127,80 +127,88 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const fmpaAttendanceRates = await Promise.all(
-      fmpas.map(async (fmpa) => {
-        const presentCount = await prisma.participation.count({
-          where: {
-            fmpaId: fmpa.id,
-            status: "PRESENT",
-          },
-        });
-
-        const rate =
-          fmpa._count.participations > 0
-            ? Math.round((presentCount / fmpa._count.participations) * 100)
-            : 0;
-
-        return {
-          fmpa: {
-            id: fmpa.id,
-            title: fmpa.title,
-            type: fmpa.type,
-            startDate: fmpa.startDate,
-          },
-          totalParticipants: fmpa._count.participations,
-          presentCount,
-          rate,
-        };
-      })
+    // Récupérer les présences par FMPA en une seule requête (groupBy)
+    const presentByFmpa = await prisma.participation.groupBy({
+      by: ["fmpaId"],
+      where: {
+        fmpa: fmpaFilter,
+        status: "PRESENT",
+      },
+      _count: { id: true },
+    });
+    const presentByFmpaMap = new Map(
+      presentByFmpa.map((p) => [p.fmpaId, p._count.id])
     );
 
-    // 3. Heures de formation par personne
-    const trainingHoursByUser = await Promise.all(
-      participationsByUser.map(async (userStat) => {
-        const user = await prisma.user.findUnique({
-          where: { id: userStat.userId },
+    const fmpaAttendanceRates = fmpas.map((fmpa) => {
+      const presentCount = presentByFmpaMap.get(fmpa.id) || 0;
+      const rate =
+        fmpa._count.participations > 0
+          ? Math.round((presentCount / fmpa._count.participations) * 100)
+          : 0;
+
+      return {
+        fmpa: {
+          id: fmpa.id,
+          title: fmpa.title,
+          type: fmpa.type,
+          startDate: fmpa.startDate,
+        },
+        totalParticipants: fmpa._count.participations,
+        presentCount,
+        rate,
+      };
+    });
+
+    // 3. Heures de formation par personne (une seule requête au lieu de N+1)
+    const allFormationParticipations = await prisma.participation.findMany({
+      where: {
+        userId: { in: userIds },
+        status: "PRESENT",
+        fmpa: {
+          ...fmpaFilter,
+          type: "FORMATION",
+        },
+      },
+      include: {
+        fmpa: {
           select: {
-            id: true,
-            firstName: true,
-            lastName: true,
+            startDate: true,
+            endDate: true,
           },
-        });
+        },
+      },
+    });
 
-        const participations = await prisma.participation.findMany({
-          where: {
-            userId: userStat.userId,
-            status: "PRESENT",
-            fmpa: {
-              ...fmpaFilter,
-              type: "FORMATION",
-            },
-          },
-          include: {
-            fmpa: {
-              select: {
-                startDate: true,
-                endDate: true,
-              },
-            },
-          },
-        });
+    // Grouper par userId en mémoire
+    const formationsByUser = new Map<
+      string,
+      typeof allFormationParticipations
+    >();
+    for (const p of allFormationParticipations) {
+      const list = formationsByUser.get(p.userId) || [];
+      list.push(p);
+      formationsByUser.set(p.userId, list);
+    }
 
-        const totalHours = participations.reduce((sum, p) => {
-          const hours = differenceInHours(
-            new Date(p.fmpa.endDate),
-            new Date(p.fmpa.startDate)
-          );
-          return sum + hours;
-        }, 0);
+    const trainingHoursByUser = userIds.map((userId) => {
+      const user = userMap.get(userId);
+      const participations = formationsByUser.get(userId) || [];
 
-        return {
-          user,
-          totalHours,
-          formationsCount: participations.length,
-        };
-      })
-    );
+      const totalHours = participations.reduce((sum, p) => {
+        const hours = differenceInHours(
+          new Date(p.fmpa.endDate),
+          new Date(p.fmpa.startDate)
+        );
+        return sum + hours;
+      }, 0);
+
+      return {
+        user,
+        totalHours,
+        formationsCount: participations.length,
+      };
+    });
 
     // 4. Statistiques globales
     const totalFMPAs = await prisma.fMPA.count({
