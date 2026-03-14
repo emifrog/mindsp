@@ -156,6 +156,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Invalider le cache news du tenant
+    await CacheService.deletePattern(`news:${session.user.tenantId}:*`);
+
     return NextResponse.json({ article }, { status: 201 });
   } catch (error) {
     console.error("Erreur POST /api/news:", error);

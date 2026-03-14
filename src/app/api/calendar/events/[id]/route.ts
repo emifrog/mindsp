@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { CacheService } from "@/lib/cache";
 
 // GET /api/calendar/events/[id] - Détails événement
 export async function GET(
@@ -136,6 +137,9 @@ export async function PATCH(
       },
     });
 
+    // Invalider le cache calendrier du tenant
+    await CacheService.deletePattern(`calendar:${session.user.tenantId}:*`);
+
     return NextResponse.json({ event });
   } catch (error) {
     console.error("Erreur PATCH /api/calendar/events/[id]:", error);
@@ -188,6 +192,9 @@ export async function DELETE(
     await prisma.calendarEvent.delete({
       where: { id: params.id },
     });
+
+    // Invalider le cache calendrier du tenant
+    await CacheService.deletePattern(`calendar:${session.user.tenantId}:*`);
 
     return NextResponse.json({ success: true });
   } catch (error) {

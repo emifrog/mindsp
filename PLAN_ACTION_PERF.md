@@ -32,8 +32,19 @@
    - /api/messaging/polls/[id]/vote: createMany pour les reponses
 
 ## P2 - MOYENNE PRIORITE
-9. Ajouter useMemo sur les calculs couteux (groupedMessages, filteredChannels)
-10. Extraire et memoiser ChannelItem comme composant separe
-11. Paralleliser les fetches sequentiels (RecipientSelector, search)
-12. Cascade d'invalidation du cache parent-enfant
-13. Ajouter Prisma middleware pour detecter les requetes lentes en production
+9. ~~Ajouter useMemo sur les calculs couteux (groupedMessages, filteredChannels)~~ ✅ FAIT
+   - MessageList: groupedMessages enveloppe dans useMemo([messages])
+   - ChannelList: filteredChannels, publicChannels, privateChannels, directMessages memoises
+10. ~~Extraire et memoiser ChannelItem comme composant separe~~ ✅ FAIT
+    - ChannelItem extrait hors du composant parent et enveloppe dans React.memo()
+    - Props isSelected/onSelect passees explicitement (plus de closure sur selectedChannelId)
+    - useCallback sur handleSelectChannel
+11. ~~Paralleliser les fetches sequentiels (RecipientSelector)~~ ✅ FAIT
+    - fetchSuggestions: users + lists fetches en parallele via Promise.all
+12. ~~Cascade d'invalidation du cache parent-enfant~~ ✅ FAIT
+    - POST /api/calendar/events: invalide cache calendar:tenantId:*
+    - PATCH/DELETE /api/calendar/events/[id]: invalide cache calendar:tenantId:*
+    - POST /api/news: invalide cache news:tenantId:*
+13. ~~Ajouter Prisma middleware pour detecter les requetes lentes~~ ✅ FAIT
+    - Middleware $use dans src/lib/prisma.ts
+    - Seuil: 500ms, log console.warn avec model.action + args (tronques a 200 chars)

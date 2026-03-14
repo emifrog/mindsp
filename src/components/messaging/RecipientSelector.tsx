@@ -62,15 +62,16 @@ export function RecipientSelector({
     try {
       setLoading(true);
 
-      // Fetch users
-      const usersRes = await fetch(
-        `/api/messaging/directory?search=${encodeURIComponent(debouncedSearch)}&limit=5`
-      );
-      const usersData = await usersRes.json();
+      // Fetch users et lists en parallèle
+      const [usersRes, listsRes] = await Promise.all([
+        fetch(`/api/messaging/directory?search=${encodeURIComponent(debouncedSearch)}&limit=5`),
+        fetch("/api/messaging/lists"),
+      ]);
 
-      // Fetch lists
-      const listsRes = await fetch("/api/messaging/lists");
-      const listsData = await listsRes.json();
+      const [usersData, listsData] = await Promise.all([
+        usersRes.json(),
+        listsRes.json(),
+      ]);
 
       setUsers(usersData.users || []);
       setLists(

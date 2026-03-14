@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { Icons } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,94 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ChatChannel } from "@/types/chat";
+
+const getChannelIcon = (channel: ChatChannel) => {
+  if (channel.icon) return channel.icon;
+  if (channel.type === "PUBLIC") return "💬";
+  if (channel.type === "PRIVATE") return "🔒";
+  return "👤";
+};
+
+const ChannelItem = memo(function ChannelItem({
+  channel,
+  isSelected,
+  onSelect,
+}: {
+  channel: ChatChannel;
+  isSelected: boolean;
+  onSelect: (channel: ChatChannel) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(channel)}
+      className={cn(
+        "group w-full rounded-lg px-3 py-2.5 text-left transition-all",
+        isSelected
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "hover:bg-accent/50"
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "shrink-0",
+            isSelected && "scale-110 transition-transform"
+          )}
+        >
+          <Icon name={getChannelIcon(channel)} size="lg" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="mb-0.5 flex items-center justify-between gap-2">
+            <span
+              className={cn(
+                "truncate text-sm font-semibold",
+                isSelected ? "text-primary-foreground" : "text-foreground"
+              )}
+            >
+              {channel.type === "PUBLIC" && "#"}
+              {channel.name}
+            </span>
+            {channel.unreadCount && channel.unreadCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="h-5 min-w-5 px-1.5 text-xs font-bold"
+              >
+                {channel.unreadCount > 99 ? "99+" : channel.unreadCount}
+              </Badge>
+            )}
+          </div>
+          {channel.lastMessage && (
+            <p
+              className={cn(
+                "truncate text-xs",
+                isSelected
+                  ? "text-primary-foreground/80"
+                  : "text-muted-foreground"
+              )}
+            >
+              <span className="font-medium">
+                {channel.lastMessage.user?.firstName}:
+              </span>{" "}
+              {channel.lastMessage.content}
+            </p>
+          )}
+          {channel.description && !channel.lastMessage && (
+            <p
+              className={cn(
+                "truncate text-xs italic",
+                isSelected
+                  ? "text-primary-foreground/70"
+                  : "text-muted-foreground"
+              )}
+            >
+              {channel.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+});
 
 interface ChannelListProps {
   selectedChannelId?: string;
@@ -42,92 +130,23 @@ export function ChannelList({
     }
   };
 
-  const filteredChannels = channels.filter((channel) =>
-    channel.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredChannels = useMemo(
+    () =>
+      channels.filter((channel) =>
+        channel.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [channels, searchQuery]
   );
 
-  const publicChannels = filteredChannels.filter((c) => c.type === "PUBLIC");
-  const privateChannels = filteredChannels.filter((c) => c.type === "PRIVATE");
-  const directMessages = filteredChannels.filter((c) => c.type === "DIRECT");
+  const { publicChannels, privateChannels, directMessages } = useMemo(() => ({
+    publicChannels: filteredChannels.filter((c) => c.type === "PUBLIC"),
+    privateChannels: filteredChannels.filter((c) => c.type === "PRIVATE"),
+    directMessages: filteredChannels.filter((c) => c.type === "DIRECT"),
+  }), [filteredChannels]);
 
-  const getChannelIcon = (channel: ChatChannel) => {
-    if (channel.icon) return channel.icon;
-    if (channel.type === "PUBLIC") return "💬";
-    if (channel.type === "PRIVATE") return "🔒";
-    return "👤";
-  };
-
-  const ChannelItem = ({ channel }: { channel: ChatChannel }) => (
-    <button
-      onClick={() => onSelectChannel(channel)}
-      className={cn(
-        "group w-full rounded-lg px-3 py-2.5 text-left transition-all",
-        selectedChannelId === channel.id
-          ? "bg-primary text-primary-foreground shadow-sm"
-          : "hover:bg-accent/50"
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "shrink-0",
-            selectedChannelId === channel.id && "scale-110 transition-transform"
-          )}
-        >
-          <Icon name={getChannelIcon(channel)} size="lg" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="mb-0.5 flex items-center justify-between gap-2">
-            <span
-              className={cn(
-                "truncate text-sm font-semibold",
-                selectedChannelId === channel.id
-                  ? "text-primary-foreground"
-                  : "text-foreground"
-              )}
-            >
-              {channel.type === "PUBLIC" && "#"}
-              {channel.name}
-            </span>
-            {channel.unreadCount && channel.unreadCount > 0 && (
-              <Badge
-                variant="destructive"
-                className="h-5 min-w-5 px-1.5 text-xs font-bold"
-              >
-                {channel.unreadCount > 99 ? "99+" : channel.unreadCount}
-              </Badge>
-            )}
-          </div>
-          {channel.lastMessage && (
-            <p
-              className={cn(
-                "truncate text-xs",
-                selectedChannelId === channel.id
-                  ? "text-primary-foreground/80"
-                  : "text-muted-foreground"
-              )}
-            >
-              <span className="font-medium">
-                {channel.lastMessage.user?.firstName}:
-              </span>{" "}
-              {channel.lastMessage.content}
-            </p>
-          )}
-          {channel.description && !channel.lastMessage && (
-            <p
-              className={cn(
-                "truncate text-xs italic",
-                selectedChannelId === channel.id
-                  ? "text-primary-foreground/70"
-                  : "text-muted-foreground"
-              )}
-            >
-              {channel.description}
-            </p>
-          )}
-        </div>
-      </div>
-    </button>
+  const handleSelectChannel = useCallback(
+    (channel: ChatChannel) => onSelectChannel(channel),
+    [onSelectChannel]
   );
 
   if (loading) {
@@ -168,7 +187,7 @@ export function ChannelList({
               </h3>
               <div className="space-y-1">
                 {publicChannels.map((channel) => (
-                  <ChannelItem key={channel.id} channel={channel} />
+                  <ChannelItem key={channel.id} channel={channel} isSelected={selectedChannelId === channel.id} onSelect={handleSelectChannel} />
                 ))}
               </div>
             </div>
@@ -182,7 +201,7 @@ export function ChannelList({
               </h3>
               <div className="space-y-1">
                 {privateChannels.map((channel) => (
-                  <ChannelItem key={channel.id} channel={channel} />
+                  <ChannelItem key={channel.id} channel={channel} isSelected={selectedChannelId === channel.id} onSelect={handleSelectChannel} />
                 ))}
               </div>
             </div>
@@ -196,7 +215,7 @@ export function ChannelList({
               </h3>
               <div className="space-y-1">
                 {directMessages.map((channel) => (
-                  <ChannelItem key={channel.id} channel={channel} />
+                  <ChannelItem key={channel.id} channel={channel} isSelected={selectedChannelId === channel.id} onSelect={handleSelectChannel} />
                 ))}
               </div>
             </div>

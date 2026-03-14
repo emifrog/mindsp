@@ -166,6 +166,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Invalider le cache calendrier du tenant
+    await CacheService.deletePattern(`calendar:${session.user.tenantId}:*`);
+
     return NextResponse.json({ event }, { status: 201 });
   } catch (error) {
     console.error("Erreur POST /api/calendar/events:", error);

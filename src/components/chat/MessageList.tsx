@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useChatChannel } from "@/hooks/use-chat";
 import { Message } from "./Message";
 import { TypingIndicator } from "./TypingIndicator";
@@ -44,17 +44,21 @@ export function MessageList({ channelId }: MessageListProps) {
     }
   };
 
-  // Grouper les messages par date
-  const groupedMessages = messages.reduce(
-    (groups, message) => {
-      const date = format(new Date(message.createdAt), "yyyy-MM-dd");
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(message);
-      return groups;
-    },
-    {} as Record<string, typeof messages>
+  // Grouper les messages par date (mémoïsé pour éviter recalcul à chaque render)
+  const groupedMessages = useMemo(
+    () =>
+      messages.reduce(
+        (groups, message) => {
+          const date = format(new Date(message.createdAt), "yyyy-MM-dd");
+          if (!groups[date]) {
+            groups[date] = [];
+          }
+          groups[date].push(message);
+          return groups;
+        },
+        {} as Record<string, typeof messages>
+      ),
+    [messages]
   );
 
   if (loading) {
