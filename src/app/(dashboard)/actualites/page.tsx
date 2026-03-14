@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -154,11 +155,13 @@ export default function ActualitesPage() {
                 onClick={() => router.push(`/actualites/${article.slug}`)}
               >
                 {article.coverImage && (
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                    <img
+                  <div className="relative h-36 w-full overflow-hidden rounded-t-lg sm:h-48">
+                    <Image
                       src={article.coverImage}
                       alt={article.title}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover"
                     />
                   </div>
                 )}
@@ -255,11 +258,13 @@ export default function ActualitesPage() {
                     )}
                   </div>
                   {article.coverImage && (
-                    <div className="ml-4 h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg">
-                      <img
+                    <div className="relative ml-4 hidden h-24 w-32 flex-shrink-0 overflow-hidden rounded-lg sm:block">
+                      <Image
                         src={article.coverImage}
                         alt={article.title}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="128px"
+                        className="object-cover"
                       />
                     </div>
                   )}

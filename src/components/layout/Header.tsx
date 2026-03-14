@@ -52,7 +52,7 @@ export function Header() {
   };
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-card px-3 md:px-6">
       <div className="flex items-center gap-4">
         {/* Bouton Toggle Sidebar */}
         <Button
@@ -92,7 +92,7 @@ export function Header() {
                   {getInitials(session?.user?.name)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">
+              <span className="hidden text-sm font-medium sm:inline">
                 {session?.user?.name || "Utilisateur"}
               </span>
             </Button>

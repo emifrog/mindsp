@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/icon";
 import { Icons } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: Icons.nav.dashboard },
@@ -24,21 +25,15 @@ const navigation = [
   { name: "Paramètres", href: "/settings", icon: Icons.nav.settings },
 ];
 
-export function Sidebar() {
+function SidebarContent({ collapsed, onNavClick }: { collapsed: boolean; onNavClick?: () => void }) {
   const pathname = usePathname();
-  const { isCollapsed } = useSidebar();
 
   return (
-    <div
-      className={cn(
-        "flex h-full flex-col border-r bg-card transition-all duration-300",
-        isCollapsed ? "w-20" : "w-64"
-      )}
-    >
+    <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center justify-center border-b px-3">
-        <Link href="/" className="flex items-center">
-          {isCollapsed ? (
+        <Link href="/" className="flex items-center" onClick={onNavClick}>
+          {collapsed ? (
             <Image
               src="/logo2.png"
               alt="MindSP Logo"
@@ -61,31 +56,32 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
-              title={isCollapsed ? item.name : undefined}
+              title={collapsed ? item.name : undefined}
+              onClick={onNavClick}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                isCollapsed && "justify-center px-2"
+                collapsed && "justify-center px-2"
               )}
             >
               <Icon name={item.icon} size="lg" />
-              {!isCollapsed && <span>{item.name}</span>}
+              {!collapsed && <span>{item.name}</span>}
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      {!isCollapsed && (
+      {!collapsed && (
         <div className="border-t p-4">
           <div className="text-xs text-muted-foreground">
             <p>Version 1.0.0</p>
@@ -94,5 +90,33 @@ export function Sidebar() {
         </div>
       )}
     </div>
+  );
+}
+
+export function Sidebar() {
+  const { isCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
+
+  return (
+    <>
+      {/* Sidebar desktop - cachee sur mobile */}
+      <div
+        className={cn(
+          "hidden md:flex h-full flex-col border-r bg-card transition-all duration-300",
+          isCollapsed ? "w-20" : "w-64"
+        )}
+      >
+        <SidebarContent collapsed={isCollapsed} />
+      </div>
+
+      {/* Sidebar mobile - Sheet overlay */}
+      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+        <SheetContent side="left" className="w-64 p-0">
+          <SidebarContent
+            collapsed={false}
+            onNavClick={() => setIsMobileOpen(false)}
+          />
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
