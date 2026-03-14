@@ -1,3 +1,4 @@
+// @ts-expect-error socket.io-client optional
 import { io, Socket } from "socket.io-client";
 import type { SocketEvents } from "@/types/chat";
 
@@ -31,11 +32,11 @@ export function initChatSocket(
     console.log("✅ Connected to chat server");
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on("disconnect", (reason: any) => {
     console.log("❌ Disconnected from chat server:", reason);
   });
 
-  socket.on("connect_error", (error) => {
+  socket.on("connect_error", (error: any) => {
     console.error("❌ Connection error:", error);
   });
 

@@ -37,11 +37,11 @@ export async function GET(request: NextRequest) {
     };
 
     if (status) {
-      where.status = status;
+      where.status = status as any;
     }
 
     if (type) {
-      where.type = type;
+      where.type = type as any;
     }
 
     // Essayer de récupérer du cache

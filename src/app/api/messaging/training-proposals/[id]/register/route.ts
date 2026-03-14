@@ -1,7 +1,5 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -15,7 +13,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -104,7 +102,7 @@ export async function POST(
         tenantId: session.user.tenantId,
         type: "TRAINING_REGISTERED",
         title: `Nouvelle inscription - ${proposal.title}`,
-        message: `${session.user.firstName} ${session.user.lastName} s'est inscrit à la formation`,
+        message: `${(session.user as any).firstName} ${(session.user as any).lastName} s'est inscrit à la formation`,
         linkUrl: `/messaging/training-proposals/${params.id}`,
         priority: "NORMAL",
       },
@@ -133,7 +131,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }

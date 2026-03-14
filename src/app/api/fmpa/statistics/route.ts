@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     };
 
     if (type) {
-      fmpaFilter.type = type;
+      fmpaFilter.type = type as any;
     }
 
     // 1. Taux de participation par personne (optimisé, pas de N+1)

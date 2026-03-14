@@ -3,20 +3,23 @@ import { useAuth } from "./use-auth";
 import { useToast } from "./use-toast";
 import { supabase } from "@/lib/supabase";
 
-interface Notification {
+interface AppNotification {
   id: string;
   type: string;
   title: string;
   message: string;
+  icon?: string | null;
   linkUrl?: string | null;
   read: boolean;
+  priority: string;
+  actionLabel?: string | null;
   createdAt: string;
 }
 
 export function useNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +55,7 @@ export function useNotifications() {
       .on(
         "broadcast",
         { event: "new-notification" },
-        ({ payload }: { payload: Notification }) => {
+        ({ payload }: { payload: AppNotification }) => {
           setNotifications((prev) => [payload, ...prev]);
           setUnreadCount((prev) => prev + 1);
 

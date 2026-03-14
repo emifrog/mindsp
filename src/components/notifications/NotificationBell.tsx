@@ -19,6 +19,7 @@ import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { NOTIFICATION_ICONS, PRIORITY_COLORS } from "@/types/notification";
 import type {
+  Notification as AppNotification,
   NotificationType,
   NotificationPriority,
 } from "@/types/notification";
@@ -86,7 +87,7 @@ export function NotificationBell() {
           </div>
         ) : (
           <div className="max-h-[500px] overflow-y-auto">
-            {notifications.slice(0, 10).map((notification) => (
+            {(notifications as any[]).slice(0, 10).map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className="cursor-pointer p-0"

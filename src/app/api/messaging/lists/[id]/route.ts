@@ -1,7 +1,5 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -18,7 +16,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -83,7 +81,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -109,7 +107,7 @@ export async function PATCH(
 
     const updatedList = await prisma.mailingList.update({
       where: { id: params.id },
-      data,
+      data: data as any,
       include: {
         createdBy: {
           select: {
@@ -147,7 +145,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }

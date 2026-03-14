@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     };
 
     if (category) {
-      where.category = category;
+      where.category = category as any;
     }
 
     if (search) {

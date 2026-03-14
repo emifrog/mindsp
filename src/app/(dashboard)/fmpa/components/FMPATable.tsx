@@ -127,7 +127,7 @@ export function FMPATable({ fmpas, onDelete }: FMPATableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusVariants[fmpa.status].variant}>
+                  <Badge variant={statusVariants[fmpa.status].variant as "default" | "secondary" | "destructive" | "outline"}>
                     {statusVariants[fmpa.status].label}
                   </Badge>
                 </TableCell>

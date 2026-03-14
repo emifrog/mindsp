@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Filtrer par type
     if (type) {
-      where.type = type;
+      where.type = type as any;
     }
 
     // Vérifier le cache

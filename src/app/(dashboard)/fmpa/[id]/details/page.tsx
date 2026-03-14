@@ -367,7 +367,7 @@ export default function FMPADetailsPage() {
         <TabsContent value="participants">
           <ParticipantsList
             fmpaId={params.id as string}
-            participants={fmpa.participations || []}
+            participants={fmpa.participations as any || []}
             canValidate={true} // TODO: Check permissions
             onUpdate={fetchData}
           />

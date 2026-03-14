@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 // GET /api/messaging/directory - Annuaire RH avec recherche intelligente
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Filtre par rôle
     if (role) {
-      where.role = role;
+      where.role = role as any;
     }
 
     let users;

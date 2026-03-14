@@ -1,14 +1,12 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { addDays, isBefore, isAfter } from "date-fns";
 
 // GET /api/personnel/alerts - Récupérer les alertes d'expiration
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -128,7 +126,7 @@ export async function GET(request: NextRequest) {
         user: q.personnelFile.user,
         description: `${q.name} expire le ${q.validUntil?.toLocaleDateString()}`,
         expiryDate: q.validUntil,
-        urgency: classifyUrgency(q.validUntil),
+        urgency: classifyUrgency(q.validUntil!),
         qualificationType: q.type,
       })),
       equipment: equipmentAlerts.map((e) => ({
@@ -137,7 +135,7 @@ export async function GET(request: NextRequest) {
         user: e.personnelFile.user,
         description: `${e.name} à contrôler le ${e.nextCheck?.toLocaleDateString()}`,
         expiryDate: e.nextCheck,
-        urgency: classifyUrgency(e.nextCheck),
+        urgency: classifyUrgency(e.nextCheck!),
         equipmentType: e.type,
       })),
     };

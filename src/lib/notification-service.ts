@@ -24,7 +24,7 @@ export class NotificationService {
         priority: data.priority || "NORMAL",
         actionLabel: data.actionLabel,
         actionUrl: data.actionUrl,
-        metadata: data.metadata,
+        metadata: data.metadata as Prisma.InputJsonValue,
         expiresAt: data.expiresAt,
       },
     });
@@ -56,7 +56,7 @@ export class NotificationService {
         priority: notif.priority || "NORMAL",
         actionLabel: notif.actionLabel,
         actionUrl: notif.actionUrl,
-        metadata: notif.metadata,
+        metadata: notif.metadata as Prisma.InputJsonValue,
         expiresAt: notif.expiresAt,
       })),
     });

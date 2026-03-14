@@ -55,11 +55,38 @@ interface PersonnelFile {
     nextCheckup: string;
     restrictions?: string;
   };
-  engagementDate?: string;
+  engagementDate: string;
   reengagementDate?: string;
-  gradeHistory?: unknown[];
-  medals?: unknown[];
-  qualifications?: unknown[];
+  gradeHistory?: Array<{
+    id: string;
+    grade: string;
+    effectiveDate: string;
+    promotionType: string;
+    orderNumber?: string;
+    orderDate?: string;
+    notes?: string;
+  }>;
+  medals?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    level?: string;
+    awardDate: string;
+    ceremonyDate?: string;
+    ceremonyPlace?: string;
+  }>;
+  qualifications?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    level?: string;
+    obtainedDate: string;
+    validUntil?: string;
+    renewable: boolean;
+    organization?: string;
+    certificateNumber?: string;
+    status: string;
+  }>;
   equipments?: PersonnelEquipment[];
   documents?: PersonnelDocument[];
 }

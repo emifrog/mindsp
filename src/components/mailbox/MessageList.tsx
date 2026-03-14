@@ -9,7 +9,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { MailMessage } from "@/types/mailbox";
+import type { MailMessage as BaseMailMessage } from "@/types/mailbox";
+
+type MailMessage = BaseMailMessage & {
+  recipientInfo?: {
+    isRead: boolean;
+    isStarred: boolean;
+  };
+};
 
 interface MessageListProps {
   folder: string;
@@ -151,7 +158,7 @@ export function MessageList({
                   >
                     {message.subject}
                   </h3>
-                  {message._count?.attachments > 0 && (
+                  {(message._count?.attachments ?? 0) > 0 && (
                     <Icon name={Icons.action.file} size="sm" />
                   )}
                 </div>

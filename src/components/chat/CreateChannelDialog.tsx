@@ -160,7 +160,7 @@ export function CreateChannelDialog({
               <Select
                 value={formData.type}
                 onValueChange={(value: string) =>
-                  setFormData({ ...formData, type: value })
+                  setFormData({ ...formData, type: value as "PUBLIC" | "PRIVATE" | "DIRECT" })
                 }
               >
                 <SelectTrigger>

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     };
 
     if (type) {
-      where.type = type;
+      where.type = type as any;
     }
 
     const fullWhere = {

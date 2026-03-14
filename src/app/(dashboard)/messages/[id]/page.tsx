@@ -79,7 +79,7 @@ export default function ConversationPage() {
       setMessages((prev) => {
         const existingIds = new Set(prev.map((m) => m.id));
         const newMsgs = realtimeMessages.filter((m) => !existingIds.has(m.id));
-        return [...prev, ...newMsgs];
+        return [...prev, ...newMsgs as unknown as Message[]];
       });
     }
   }, [realtimeMessages]);

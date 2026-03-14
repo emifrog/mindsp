@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     // Filtrer par statut
     if (status) {
-      where.status = status;
+      where.status = status as any;
     }
 
     // Pagination

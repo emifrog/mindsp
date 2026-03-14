@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -182,9 +181,9 @@ export function CareerTimeline({
                 <div className="pb-4">
                   <div className="mb-1 flex items-center gap-2">
                     <span className="font-medium">{event.title}</span>
-                    {event.type === "medal" && event.details && (
-                      <Badge className={getMedalTypeColor(event.details.type)}>
-                        {event.details.type}
+                    {event.type === "medal" && (event as any).details && (
+                      <Badge className={getMedalTypeColor((event as any).details.type)}>
+                        {(event as any).details.type}
                       </Badge>
                     )}
                   </div>
@@ -194,14 +193,14 @@ export function CareerTimeline({
                   <p className="mt-1 text-xs text-muted-foreground">
                     {format(new Date(event.date), "PPP", { locale: fr })}
                   </p>
-                  {event.type === "grade" && event.details?.orderNumber && (
+                  {event.type === "grade" && (event as any).details?.orderNumber && (
                     <p className="text-xs text-muted-foreground">
-                      Arrêté n° {event.details.orderNumber}
+                      Arrêté n° {(event as any).details.orderNumber}
                     </p>
                   )}
-                  {event.type === "medal" && event.details?.ceremonyPlace && (
+                  {event.type === "medal" && (event as any).details?.ceremonyPlace && (
                     <p className="text-xs text-muted-foreground">
-                      Cérémonie : {event.details.ceremonyPlace}
+                      Cérémonie : {(event as any).details.ceremonyPlace}
                     </p>
                   )}
                 </div>

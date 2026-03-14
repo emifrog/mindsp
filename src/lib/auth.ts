@@ -92,34 +92,34 @@ export const authOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }: { token: Record<string, unknown>; user?: Record<string, unknown>; trigger?: string; session?: Record<string, unknown> }) {
+    async jwt({ token, user, trigger, session }) {
       // Première connexion
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.tenantId = user.tenantId;
-        token.tenantSlug = user.tenantSlug;
+        token.id = (user as any).id;
+        token.role = (user as any).role;
+        token.tenantId = (user as any).tenantId;
+        token.tenantSlug = (user as any).tenantSlug;
       }
 
       // Mise à jour de session
       if (trigger === "update" && session) {
-        token = { ...token, ...session };
+        token = { ...token, ...(session as any) };
       }
 
       return token;
     },
-    async session({ session, token }: { session: Record<string, unknown> & { user?: Record<string, unknown> }; token: Record<string, unknown> }) {
+    async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.tenantId = token.tenantId as string;
-        session.user.tenantSlug = token.tenantSlug as string;
+        (session.user as any).id = token.id as string;
+        (session.user as any).role = token.role as string;
+        (session.user as any).tenantId = token.tenantId as string;
+        (session.user as any).tenantSlug = token.tenantSlug as string;
       }
       return session;
     },
   },
   events: {
-    async signIn({ user }: { user: Record<string, unknown> }) {
+    async signIn() {
       // Connexion réussie
     },
     async signOut() {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import getServerSession from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -18,7 +17,7 @@ const createListSchema = z.object({
 // GET /api/messaging/lists - Liste toutes les listes de diffusion
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
     };
 
     if (type) {
-      where.type = type;
+      where.type = type as any;
     }
 
     if (onlyPublic) {
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
 // POST /api/messaging/lists - Créer une liste de diffusion
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -94,7 +93,7 @@ export async function POST(request: NextRequest) {
         name: data.name,
         description: data.description,
         type: data.type,
-        criteria: data.criteria,
+        criteria: data.criteria as Prisma.InputJsonValue,
         isPublic: data.isPublic,
         tenantId: session.user.tenantId,
         createdById: session.user.id,

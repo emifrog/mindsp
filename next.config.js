@@ -3,25 +3,21 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
-  // Skip type checking and linting during build (handled by CI)
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // Optimiser les imports de packages lourds (tree-shaking)
-  optimizePackageImports: ["lucide-react", "date-fns", "framer-motion"],
-
   // Experimental features
   experimental: {
+    optimizePackageImports: ["lucide-react", "date-fns", "framer-motion"],
     serverActions: {
       allowedOrigins: process.env.ALLOWED_ORIGINS
         ? process.env.ALLOWED_ORIGINS.split(",")
         : ["localhost:3000"],
     },
-    // Disable static generation for pages with client-side hooks
     missingSuspenseWithCSRBailout: false,
   },
 

@@ -441,7 +441,7 @@ export default function TTAPage() {
                       <CardTitle className="text-base">
                         {format(new Date(entry.date), "PPP", { locale: fr })}
                       </CardTitle>
-                      <Badge variant={getStatusColor(entry.status)}>
+                      <Badge variant={getStatusColor(entry.status) as "default" | "secondary" | "destructive" | "outline"}>
                         {getStatusLabel(entry.status)}
                       </Badge>
                     </div>

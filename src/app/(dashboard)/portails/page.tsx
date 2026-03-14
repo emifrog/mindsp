@@ -160,7 +160,7 @@ export default function PortailsPage() {
                     <div>
                       <CardTitle>{portal.name}</CardTitle>
                       <Badge
-                        variant={getStatusBadge(portal.status).variant}
+                        variant={getStatusBadge(portal.status).variant as "default" | "secondary" | "destructive" | "outline"}
                         className="mt-1"
                       >
                         {getStatusBadge(portal.status).label}
