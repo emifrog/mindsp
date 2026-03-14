@@ -192,7 +192,7 @@ export default function QueuesMonitoringPage() {
 
       {/* Stats globales */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
@@ -248,7 +248,7 @@ export default function QueuesMonitoringPage() {
       )}
 
       {/* Détails par queue */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats && (
           <>
             {renderQueueCard("emails", stats.emails)}

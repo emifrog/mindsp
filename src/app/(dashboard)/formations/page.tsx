@@ -189,7 +189,7 @@ export default function FormationsPage() {
           <CardTitle>Filtres</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -250,7 +250,7 @@ export default function FormationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {filteredFormations.map((formation) => (
             <Link key={formation.id} href={`/formations/${formation.id}`}>
               <Card className="cursor-pointer transition-shadow hover:shadow-lg">

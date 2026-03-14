@@ -51,7 +51,7 @@ export default function ShowcasePage() {
       {/* Stats Cards */}
       <div className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Statistiques Modernes</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Utilisateurs Actifs"
             value="1,234"
@@ -89,7 +89,7 @@ export default function ShowcasePage() {
       {/* Card Variants */}
       <div className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Variantes de Cards</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Default Card */}
           <CardModern>
             <CardModernHeader>
@@ -188,7 +188,7 @@ export default function ShowcasePage() {
       {/* Buttons & Badges */}
       <div className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Boutons & Badges</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <CardModern>
             <CardModernHeader>
               <CardModernTitle>Boutons Modernes</CardModernTitle>
@@ -235,7 +235,7 @@ export default function ShowcasePage() {
       {/* Gradient Backgrounds */}
       <div className="mb-12">
         <h2 className="mb-6 text-2xl font-bold">Arrière-plans Gradient</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
           <div className="gradient-primary rounded-xl p-8 text-center text-white">
             <h3 className="mb-2 text-xl font-bold">Gradient Primary</h3>
             <p className="text-sm opacity-90">Bleu → Cyan</p>
@@ -272,7 +272,7 @@ export default function ShowcasePage() {
       {/* Features Grid */}
       <div>
         <h2 className="mb-6 text-2xl font-bold">Modules Disponibles</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
           <CardModern
             variant="glass"
             className="cursor-pointer transition-transform hover:scale-105"

@@ -150,7 +150,7 @@ export default function NewFormationPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           {/* Informations principales */}
           <Card>
             <CardHeader>
@@ -197,7 +197,7 @@ export default function NewFormationPage() {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="category">Catégorie *</Label>
                   <Select
@@ -247,7 +247,7 @@ export default function NewFormationPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="duration">Durée (heures)</Label>
                   <Input
@@ -350,7 +350,7 @@ export default function NewFormationPage() {
                 <CardDescription>Capacité et formateur</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="minParticipants">Min. participants</Label>
                     <Input

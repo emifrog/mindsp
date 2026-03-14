@@ -204,7 +204,7 @@ export default function FormationDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
         {/* Informations principales */}
         <div className="space-y-6 md:col-span-2">
           <Card>

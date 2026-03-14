@@ -240,7 +240,7 @@ export default function FMPADetailsPage() {
       </div>
 
       {/* Info Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Participants</CardTitle>
@@ -317,7 +317,7 @@ export default function FMPADetailsPage() {
                 </div>
               )}
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <h3 className="font-medium">Type</h3>
                   <Badge>{fmpa.type}</Badge>
@@ -385,7 +385,7 @@ export default function FMPADetailsPage() {
         )}
 
         <TabsContent value="stats">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Statuts des participants</CardTitle>

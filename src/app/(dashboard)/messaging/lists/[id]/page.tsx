@@ -231,7 +231,7 @@ export default function MailingListDetailsPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           {/* Informations */}
           <Card>
             <CardHeader>

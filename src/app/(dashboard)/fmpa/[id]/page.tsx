@@ -352,7 +352,7 @@ export default function FMPADetailPage() {
             </div>
           )}
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-center text-sm">
               <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
               <div>

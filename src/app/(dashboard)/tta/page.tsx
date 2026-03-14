@@ -227,7 +227,7 @@ export default function TTAPage() {
       </div>
 
       {/* Résumé */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total du mois</CardTitle>
@@ -273,7 +273,7 @@ export default function TTAPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="date">Date *</Label>
                   <Input
@@ -323,7 +323,7 @@ export default function TTAPage() {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <div className="space-y-2">
                   <Label htmlFor="hours">Heures *</Label>
                   <Input

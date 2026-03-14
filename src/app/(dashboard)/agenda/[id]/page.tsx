@@ -237,7 +237,7 @@ export default function EventDetailsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
         {/* Informations principales */}
         <div className="space-y-6 md:col-span-2">
           <Card>
@@ -274,7 +274,7 @@ export default function EventDetailsPage() {
                 </div>
               )}
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" />
                   <div>
