@@ -17,10 +17,12 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 200);
 
     // Vérifier le cache
-    const cacheKey = `users:${session.user.tenantId}:${search || "all"}`;
-    const cached = await CacheService.get<{ users: unknown[] }>(cacheKey);
+    const cacheKey = `users:${session.user.tenantId}:${search || "all"}:${page}:${limit}`;
+    const cached = await CacheService.get<{ users: unknown[]; pagination: unknown }>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
@@ -38,20 +40,33 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        avatar: true,
-        role: true,
-      },
-      orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
-    });
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true,
+          role: true,
+        },
+        orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
 
-    const response = { users };
+    const response = {
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
     await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
 
     return NextResponse.json(response);
