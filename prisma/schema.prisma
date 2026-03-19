@@ -197,6 +197,7 @@ model UserSettings {
   notificationPreferences Json?
   theme                   String?  @default("system")
   language                String?  @default("fr")
+  onboardingCompleted     Boolean  @default(false)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   

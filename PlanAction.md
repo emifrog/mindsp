@@ -116,28 +116,34 @@ Score actuel: 35/100 — Objectif: 85/100
 
 ## P1 - INFRASTRUCTURE CRITIQUE (necessaire pour fiabilite)
 
-22. Implementer l'envoi d'emails fonctionnel (Resend)
-    - Remplacer le console.log dans src/lib/email.ts par Resend API
-    - Templates: bienvenue, reset password, confirmation inscription
-    - Variable RESEND_API_KEY dans .env
+22. ~~Implementer l'envoi d'emails fonctionnel (Resend)~~ ✅ FAIT
+    - src/lib/email.ts reecrit avec Resend SDK
+    - Fallback console.log si RESEND_API_KEY absente (dev)
+    - Templates: sendWelcomeEmail(), sendPasswordResetEmail()
+    - Templates FMPA: getRegistrationEmailTemplate(), getReminderEmailTemplate()
 
-23. Ajouter Sentry pour le tracking d'erreurs
-    - npm install @sentry/nextjs
-    - Configurer sentry.client.config.ts + sentry.server.config.ts
-    - Connecter error.tsx et error boundary au reporting Sentry
+23. ~~Ajouter Sentry pour le tracking d'erreurs~~ ✅ FAIT
+    - @sentry/nextjs installe, next.config.js wrappe avec withSentryConfig
+    - sentry.client.config.ts: 10% transactions, 100% replays on error
+    - sentry.server.config.ts + sentry.edge.config.ts
+    - error.tsx connecte via Sentry.captureException()
+    - CSP connect-src: *.ingest.sentry.io ajoute
 
-24. Creer un endpoint /api/health fonctionnel
-    - Verifier: DB connectee, Redis accessible, version app
-    - Retourner status 200 avec uptime et checks
+24. ~~Creer un endpoint /api/health fonctionnel~~ ✅ FAIT
+    - GET /api/health: checks DB + Redis, retourne status/version/uptime/latency
+    - 200 si tout ok, 503 si degrade
 
-25. Mettre en place GitHub Actions CI/CD
-    - .github/workflows/ci.yml: lint + tsc + build sur chaque PR
-    - .github/workflows/deploy.yml: deploy Vercel sur push main
+25. ~~Mettre en place GitHub Actions CI/CD~~ ✅ FAIT
+    - .github/workflows/ci.yml: prisma generate + tsc --noEmit + next build
+    - Declenche sur push main et PR vers main
+    - Variables d'env factices pour le build CI
 
-26. Ajouter un flux d'onboarding post-inscription
-    - Wizard 3 etapes: profil, preferences notifications, decouverte features
-    - Flag user.onboardingCompleted dans le schema Prisma
-    - Redirection automatique si onboarding non fait
+26. ~~Ajouter un flux d'onboarding post-inscription~~ ✅ FAIT
+    - Champ onboardingCompleted ajoute a UserSettings (migration SQL)
+    - API /api/onboarding: GET (check status) + POST (mark completed)
+    - Composant OnboardingWizard.tsx: 3 etapes (bienvenue, modules, notifications)
+    - Integre dans le layout dashboard, modal overlay
+    - Bouton "Passer" pour ignorer
 
 ## P2 - MONETISATION (necessaire pour revenus)
 

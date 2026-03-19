@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider } from "@/contexts/SidebarContext";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 export default function DashboardLayout({
   children,
@@ -21,6 +22,7 @@ export default function DashboardLayout({
           </main>
         </div>
         <Toaster />
+        <OnboardingWizard />
       </div>
     </SidebarProvider>
   );

@@ -1,3 +1,5 @@
+const { withSentryConfig } = require("@sentry/nextjs");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -33,7 +35,7 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https://utfs.io https://*.uploadthing.com;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app;
+      connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app https://*.ingest.sentry.io;
       media-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
@@ -119,4 +121,11 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  hideSourceMaps: true,
+});
