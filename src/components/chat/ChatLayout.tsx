@@ -14,15 +14,15 @@ export function ChatLayout() {
   const [selectedChannel, setSelectedChannel] = useState<ChatChannel | null>(
     null
   );
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background">
       {/* Sidebar - Liste des canaux */}
       <div
         className={`${
-          showSidebar ? "w-72" : "w-0"
-        } overflow-hidden border-r bg-card transition-all duration-300`}
+          showSidebar ? "w-full md:w-72" : "w-0"
+        } ${showSidebar ? "absolute inset-0 z-20 md:relative md:inset-auto md:z-auto" : ""} overflow-hidden border-r bg-card transition-all duration-300`}
       >
         <div className="flex h-full flex-col">
           {/* Header Sidebar */}
@@ -36,7 +36,6 @@ export function ChatLayout() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSidebar(false)}
-                className="lg:hidden"
               >
                 <Icon name={Icons.ui.close} size="sm" />
               </Button>
@@ -46,7 +45,10 @@ export function ChatLayout() {
           {/* Liste des canaux */}
           <ChannelList
             selectedChannelId={selectedChannel?.id}
-            onSelectChannel={setSelectedChannel}
+            onSelectChannel={(channel) => {
+              setSelectedChannel(channel);
+              setShowSidebar(false);
+            }}
           />
         </div>
       </div>
@@ -59,7 +61,7 @@ export function ChatLayout() {
             <ChannelHeader
               channel={selectedChannel}
               onToggleSidebar={() => setShowSidebar(!showSidebar)}
-              showSidebarButton={!showSidebar}
+              showSidebarButton={true}
             />
 
             {/* Liste des messages */}
@@ -69,7 +71,15 @@ export function ChatLayout() {
             <MessageInput channelId={selectedChannel.id} />
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-background to-accent/20">
+          <div className="flex flex-1 flex-col items-center justify-center bg-gradient-to-br from-background to-accent/20">
+            <Button
+              variant="outline"
+              className="mb-6 md:hidden"
+              onClick={() => setShowSidebar(true)}
+            >
+              <Icon name="💬" size="sm" className="mr-2" />
+              Voir les canaux
+            </Button>
             <div className="max-w-md px-6 text-center">
               <div className="relative mb-6">
                 <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl"></div>

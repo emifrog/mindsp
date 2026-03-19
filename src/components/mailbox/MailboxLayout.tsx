@@ -14,7 +14,7 @@ export function MailboxLayout() {
   const [selectedMessage, setSelectedMessage] = useState<MailMessage | null>(
     null
   );
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [currentFolder, setCurrentFolder] = useState<string>("INBOX");
 
   return (
@@ -22,8 +22,8 @@ export function MailboxLayout() {
       {/* Sidebar - Dossiers */}
       <div
         className={`${
-          showSidebar ? "w-64" : "w-0"
-        } overflow-hidden border-r transition-all duration-300`}
+          showSidebar ? "w-full md:w-64" : "w-0"
+        } ${showSidebar ? "absolute inset-0 z-20 md:relative md:inset-auto md:z-auto" : ""} overflow-hidden border-r bg-card transition-all duration-300`}
       >
         <div className="flex h-full flex-col">
           {/* Header Sidebar */}
@@ -37,7 +37,6 @@ export function MailboxLayout() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowSidebar(false)}
-                className="lg:hidden"
               >
                 <Icon name={Icons.ui.close} size="sm" />
               </Button>
@@ -50,34 +49,47 @@ export function MailboxLayout() {
           {/* Liste des dossiers */}
           <FolderList
             currentFolder={currentFolder}
-            onSelectFolder={setCurrentFolder}
+            onSelectFolder={(folder) => {
+              setCurrentFolder(folder);
+              setShowSidebar(false);
+            }}
           />
         </div>
       </div>
 
       {/* Zone principale - Messages */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 flex-col md:flex-row">
         {/* Liste des messages */}
-        <div className={`${selectedMessage ? "w-96" : "flex-1"} border-r`}>
+        <div className={`${selectedMessage ? "hidden md:block md:w-96" : "flex-1"} border-r`}>
           <MessageList
             folder={currentFolder}
             selectedMessageId={selectedMessage?.id}
             onSelectMessage={setSelectedMessage}
             onToggleSidebar={() => setShowSidebar(!showSidebar)}
-            showSidebarButton={!showSidebar}
+            showSidebarButton={true}
           />
         </div>
 
         {/* Vue détaillée du message */}
         {selectedMessage ? (
           <div className="flex-1">
+            <div className="flex items-center gap-2 border-b p-2 md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMessage(null)}
+              >
+                <Icon name={Icons.ui.arrowLeft} size="sm" className="mr-1" />
+                Retour
+              </Button>
+            </div>
             <MessageView
               message={selectedMessage}
               onClose={() => setSelectedMessage(null)}
             />
           </div>
         ) : (
-          <div className="flex flex-1 items-center justify-center">
+          <div className="hidden flex-1 items-center justify-center md:flex">
             <div className="text-center">
               <Icon
                 name="✉️"

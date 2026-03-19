@@ -69,6 +69,7 @@
     "react-hook-form": "^7.65.0",
     "react-textarea-autosize": "^8.5.9",
     "redis": "^4.7.0",
+    "swr": "^2.4.1",
     "tailwind-merge": "^2.6.0",
     "uploadthing": "^7.7.4",
     "web-push": "^3.6.7",

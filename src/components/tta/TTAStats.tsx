@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Euro,
@@ -29,24 +30,27 @@ interface TTAStatsProps {
 }
 
 export function TTAStats({ entries }: TTAStatsProps) {
-  const stats = {
-    totalHours: entries.reduce((sum, e) => sum + e.hours, 0),
-    totalAmount: entries.reduce((sum, e) => sum + e.totalAmount, 0),
-    totalNightHours: entries.reduce((sum, e) => sum + e.nightHours, 0),
-    totalSundayHours: entries.reduce((sum, e) => sum + e.sundayHours, 0),
-    totalHolidayHours: entries.reduce((sum, e) => sum + e.holidayHours, 0),
-    totalBaseAmount: entries.reduce((sum, e) => sum + e.baseAmount, 0),
-    totalNightBonus: entries.reduce((sum, e) => sum + e.nightBonus, 0),
-    totalSundayBonus: entries.reduce((sum, e) => sum + e.sundayBonus, 0),
-    totalHolidayBonus: entries.reduce((sum, e) => sum + e.holidayBonus, 0),
-    validatedCount: entries.filter((e) => e.status === "VALIDATED").length,
-    pendingCount: entries.filter((e) => e.status === "PENDING").length,
-    rejectedCount: entries.filter((e) => e.status === "REJECTED").length,
-    exportedCount: entries.filter((e) => e.status === "EXPORTED").length,
-  };
-
-  const averageHourlyRate =
-    stats.totalHours > 0 ? stats.totalAmount / stats.totalHours : 0;
+  const { stats, averageHourlyRate } = useMemo(() => {
+    const s = {
+      totalHours: entries.reduce((sum, e) => sum + e.hours, 0),
+      totalAmount: entries.reduce((sum, e) => sum + e.totalAmount, 0),
+      totalNightHours: entries.reduce((sum, e) => sum + e.nightHours, 0),
+      totalSundayHours: entries.reduce((sum, e) => sum + e.sundayHours, 0),
+      totalHolidayHours: entries.reduce((sum, e) => sum + e.holidayHours, 0),
+      totalBaseAmount: entries.reduce((sum, e) => sum + e.baseAmount, 0),
+      totalNightBonus: entries.reduce((sum, e) => sum + e.nightBonus, 0),
+      totalSundayBonus: entries.reduce((sum, e) => sum + e.sundayBonus, 0),
+      totalHolidayBonus: entries.reduce((sum, e) => sum + e.holidayBonus, 0),
+      validatedCount: entries.filter((e) => e.status === "VALIDATED").length,
+      pendingCount: entries.filter((e) => e.status === "PENDING").length,
+      rejectedCount: entries.filter((e) => e.status === "REJECTED").length,
+      exportedCount: entries.filter((e) => e.status === "EXPORTED").length,
+    };
+    return {
+      stats: s,
+      averageHourlyRate: s.totalHours > 0 ? s.totalAmount / s.totalHours : 0,
+    };
+  }, [entries]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

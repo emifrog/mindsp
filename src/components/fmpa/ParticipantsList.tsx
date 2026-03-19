@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -155,112 +155,124 @@ export function ParticipantsList({
 
       <CardContent>
         <div className="space-y-4">
-          {participants.map((participant) => {
-            const StatusIcon = STATUS_ICONS[participant.status] || Clock;
-
-            return (
-              <div
-                key={participant.id}
-                className="flex items-start gap-4 rounded-lg border p-4"
-              >
-                <Avatar>
-                  <AvatarImage src="" />
-                  <AvatarFallback>
-                    {participant.user.firstName[0]}
-                    {participant.user.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {participant.user.firstName} {participant.user.lastName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {participant.user.email}
-                      </p>
-                      {participant.user.badge && (
-                        <Badge variant="outline" className="mt-1 text-xs">
-                          {participant.user.badge}
-                        </Badge>
-                      )}
-                    </div>
-
-                    <Badge
-                      className={`${STATUS_COLORS[participant.status]} text-white`}
-                    >
-                      <StatusIcon className="mr-1 h-3 w-3" />
-                      {STATUS_LABELS[participant.status]}
-                    </Badge>
-                  </div>
-
-                  {participant.mealRegistration && (
-                    <div className="rounded-md bg-muted p-2 text-sm">
-                      <p className="font-medium">🍽️ Repas</p>
-                      {participant.mealRegistration.menuChoice && (
-                        <p className="text-xs">
-                          Menu : {participant.mealRegistration.menuChoice}
-                        </p>
-                      )}
-                      {participant.mealRegistration.dietaryRestrictions && (
-                        <p className="text-xs text-muted-foreground">
-                          {participant.mealRegistration.dietaryRestrictions}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {participant.excuseReason && (
-                    <div className="rounded-md bg-orange-50 p-2 text-sm text-orange-800">
-                      <p className="font-medium">Raison de l&apos;excuse :</p>
-                      <p className="text-xs">{participant.excuseReason}</p>
-                    </div>
-                  )}
-
-                  {canValidate && participant.status !== "CANCELLED" && (
-                    <div className="space-y-2">
-                      <Select
-                        onValueChange={(value) => {
-                          if (value === "EXCUSED") {
-                            // Demander la raison
-                            const reason = prompt("Raison de l'excuse :");
-                            if (reason) {
-                              handleValidate(participant.id, value, reason);
-                            }
-                          } else {
-                            handleValidate(participant.id, value);
-                          }
-                        }}
-                        disabled={validating === participant.id}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Changer le statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CONFIRMED">Confirmer</SelectItem>
-                          <SelectItem value="PRESENT">
-                            Marquer présent
-                          </SelectItem>
-                          <SelectItem value="ABSENT">Marquer absent</SelectItem>
-                          <SelectItem value="EXCUSED">Excuser</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-muted-foreground">
-                    Inscrit le{" "}
-                    {new Date(participant.registeredAt).toLocaleDateString(
-                      "fr-FR"
-                    )}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+          {participants.map((participant) => (
+            <ParticipantItem
+              key={participant.id}
+              participant={participant}
+              canValidate={canValidate}
+              validating={validating}
+              onValidate={handleValidate}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 }
+
+const ParticipantItem = React.memo(function ParticipantItem({
+  participant,
+  canValidate,
+  validating,
+  onValidate,
+}: {
+  participant: Participant;
+  canValidate: boolean;
+  validating: string | null;
+  onValidate: (participantId: string, status: string, reason?: string) => void;
+}) {
+  const StatusIcon = STATUS_ICONS[participant.status] || Clock;
+
+  return (
+    <div className="flex items-start gap-4 rounded-lg border p-4">
+      <Avatar>
+        <AvatarImage src="" />
+        <AvatarFallback>
+          {participant.user.firstName[0]}
+          {participant.user.lastName[0]}
+        </AvatarFallback>
+      </Avatar>
+
+      <div className="flex-1 space-y-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="font-medium">
+              {participant.user.firstName} {participant.user.lastName}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {participant.user.email}
+            </p>
+            {participant.user.badge && (
+              <Badge variant="outline" className="mt-1 text-xs">
+                {participant.user.badge}
+              </Badge>
+            )}
+          </div>
+
+          <Badge
+            className={`${STATUS_COLORS[participant.status]} text-white`}
+          >
+            <StatusIcon className="mr-1 h-3 w-3" />
+            {STATUS_LABELS[participant.status]}
+          </Badge>
+        </div>
+
+        {participant.mealRegistration && (
+          <div className="rounded-md bg-muted p-2 text-sm">
+            <p className="font-medium">🍽️ Repas</p>
+            {participant.mealRegistration.menuChoice && (
+              <p className="text-xs">
+                Menu : {participant.mealRegistration.menuChoice}
+              </p>
+            )}
+            {participant.mealRegistration.dietaryRestrictions && (
+              <p className="text-xs text-muted-foreground">
+                {participant.mealRegistration.dietaryRestrictions}
+              </p>
+            )}
+          </div>
+        )}
+
+        {participant.excuseReason && (
+          <div className="rounded-md bg-orange-50 p-2 text-sm text-orange-800">
+            <p className="font-medium">Raison de l&apos;excuse :</p>
+            <p className="text-xs">{participant.excuseReason}</p>
+          </div>
+        )}
+
+        {canValidate && participant.status !== "CANCELLED" && (
+          <div className="space-y-2">
+            <Select
+              onValueChange={(value) => {
+                if (value === "EXCUSED") {
+                  const reason = prompt("Raison de l'excuse :");
+                  if (reason) {
+                    onValidate(participant.id, value, reason);
+                  }
+                } else {
+                  onValidate(participant.id, value);
+                }
+              }}
+              disabled={validating === participant.id}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Changer le statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CONFIRMED">Confirmer</SelectItem>
+                <SelectItem value="PRESENT">Marquer présent</SelectItem>
+                <SelectItem value="ABSENT">Marquer absent</SelectItem>
+                <SelectItem value="EXCUSED">Excuser</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          Inscrit le{" "}
+          {new Date(participant.registeredAt).toLocaleDateString("fr-FR")}
+        </p>
+      </div>
+    </div>
+  );
+});

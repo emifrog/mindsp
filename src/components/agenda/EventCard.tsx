@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Clock, MapPin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EVENT_COLORS, formatTime } from "@/lib/calendar-utils";
@@ -17,7 +18,7 @@ interface EventCardProps {
   allDay?: boolean;
 }
 
-export function EventCard({
+export const EventCard = React.memo(function EventCard({
   title,
   startDate,
   endDate,
@@ -71,4 +72,4 @@ export function EventCard({
       </div>
     </div>
   );
-}
+});

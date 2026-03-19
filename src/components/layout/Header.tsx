@@ -59,7 +59,7 @@ export function Header() {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="h-9 w-9"
+          className="h-10 w-10 md:h-9 md:w-9"
         >
           <MenuIcon size={24} />
           <span className="sr-only">Toggle sidebar</span>
@@ -71,7 +71,7 @@ export function Header() {
       <div className="flex items-center gap-4">
         {/* Recherche */}
         <Link href="/search">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Button variant="ghost" size="icon" className="h-10 w-10 md:h-9 md:w-9">
             <Icon name="🔍" size="lg" />
             <span className="sr-only">Recherche</span>
           </Button>

@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
+import useSWR from "swr";
 import { useAuth } from "./use-auth";
 import { useToast } from "./use-toast";
 import { supabase } from "@/lib/supabase";
+import { fetcher } from "@/lib/fetcher";
 
 interface AppNotification {
   id: string;
@@ -16,34 +18,26 @@ interface AppNotification {
   createdAt: string;
 }
 
+interface NotificationsResponse {
+  notifications: AppNotification[];
+  unreadCount: number;
+}
+
 export function useNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
 
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch("/api/notifications");
-      const data = await response.json();
-
-      if (response.ok) {
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
-      }
-    } catch (error) {
-      console.error("Erreur chargement notifications:", error);
-    } finally {
-      setLoading(false);
+  const { data, error, isLoading, mutate } = useSWR<NotificationsResponse>(
+    user ? "/api/notifications" : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
     }
-  }, [user]);
+  );
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  const notifications = data?.notifications ?? [];
+  const unreadCount = data?.unreadCount ?? 0;
 
   // Écouter les nouvelles notifications via Supabase Realtime
   useEffect(() => {
@@ -56,8 +50,16 @@ export function useNotifications() {
         "broadcast",
         { event: "new-notification" },
         ({ payload }: { payload: AppNotification }) => {
-          setNotifications((prev) => [payload, ...prev]);
-          setUnreadCount((prev) => prev + 1);
+          mutate(
+            (current) =>
+              current
+                ? {
+                    notifications: [payload, ...current.notifications],
+                    unreadCount: current.unreadCount + 1,
+                  }
+                : current,
+            { revalidate: false }
+          );
 
           toast({
             title: payload.title,
@@ -70,69 +72,103 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, toast]);
+  }, [user?.id, toast, mutate]);
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: "PATCH",
-      });
+  const markAsRead = useCallback(
+    async (notificationId: string) => {
+      try {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+          method: "PATCH",
+        });
 
-      if (response.ok) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
-        );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        if (response.ok) {
+          mutate(
+            (current) =>
+              current
+                ? {
+                    notifications: current.notifications.map((n) =>
+                      n.id === notificationId ? { ...n, read: true } : n
+                    ),
+                    unreadCount: Math.max(0, current.unreadCount - 1),
+                  }
+                : current,
+            { revalidate: false }
+          );
+        }
+      } catch (error) {
+        console.error("Erreur marquage notification:", error);
       }
-    } catch (error) {
-      console.error("Erreur marquage notification:", error);
-    }
-  };
+    },
+    [mutate]
+  );
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       const response = await fetch("/api/notifications", {
         method: "POST",
       });
 
       if (response.ok) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        setUnreadCount(0);
+        mutate(
+          (current) =>
+            current
+              ? {
+                  notifications: current.notifications.map((n) => ({
+                    ...n,
+                    read: true,
+                  })),
+                  unreadCount: 0,
+                }
+              : current,
+          { revalidate: false }
+        );
       }
     } catch (error) {
       console.error("Erreur marquage notifications:", error);
     }
-  };
+  }, [mutate]);
 
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/notifications/${notificationId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-        setUnreadCount((prev) => {
-          const notification = notifications.find(
-            (n) => n.id === notificationId
-          );
-          return notification && !notification.read
-            ? Math.max(0, prev - 1)
-            : prev;
+  const deleteNotification = useCallback(
+    async (notificationId: string) => {
+      try {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+          method: "DELETE",
         });
+
+        if (response.ok) {
+          mutate(
+            (current) => {
+              if (!current) return current;
+              const notification = current.notifications.find(
+                (n) => n.id === notificationId
+              );
+              return {
+                notifications: current.notifications.filter(
+                  (n) => n.id !== notificationId
+                ),
+                unreadCount:
+                  notification && !notification.read
+                    ? Math.max(0, current.unreadCount - 1)
+                    : current.unreadCount,
+              };
+            },
+            { revalidate: false }
+          );
+        }
+      } catch (error) {
+        console.error("Erreur suppression notification:", error);
       }
-    } catch (error) {
-      console.error("Erreur suppression notification:", error);
-    }
-  };
+    },
+    [mutate]
+  );
 
   return {
     notifications,
     unreadCount,
-    loading,
+    loading: isLoading,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    refresh: fetchNotifications,
+    refresh: () => mutate(),
   };
 }

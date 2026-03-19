@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   DAYS_OF_WEEK_SHORT,
@@ -44,7 +45,7 @@ export function CalendarGrid({
   );
 
   // Grouper les événements par jour
-  const eventsByDay = events.reduce(
+  const eventsByDay = useMemo(() => events.reduce(
     (acc, event) => {
       const eventStart = new Date(event.startDate);
       const eventEnd = new Date(event.endDate);
@@ -71,16 +72,16 @@ export function CalendarGrid({
       return acc;
     },
     {} as Record<string, CalendarEvent[]>
-  );
+  ), [events, days, currentDate]);
 
   // Vue liste mobile : jours du mois courant avec événements
-  const daysWithEvents = days
+  const daysWithEvents = useMemo(() => days
     .filter(({ isCurrentMonth }) => isCurrentMonth)
     .map(({ date, day, isToday }) => {
       const dateKey = date.toISOString().split("T")[0];
       return { date, day, isToday, events: eventsByDay[dateKey] || [] };
     })
-    .filter(({ events }) => events.length > 0);
+    .filter(({ events }) => events.length > 0), [days, eventsByDay]);
 
   return (
     <div className="flex-1 overflow-auto">

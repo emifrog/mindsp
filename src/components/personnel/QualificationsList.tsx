@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,61 +142,14 @@ export function QualificationsList({
             {/* Liste des qualifications */}
             <div className="space-y-3">
               {qualifications.map((qualification) => (
-                <div
+                <QualificationItem
                   key={qualification.id}
-                  className="flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
-                >
-                  <div className="flex flex-1 items-start gap-3">
-                    <div className="mt-1">
-                      {getStatusIcon(
-                        qualification.status,
-                        qualification.validUntil
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="font-medium">
-                          {qualification.name}
-                        </span>
-                        <Badge variant="outline">
-                          {getTypeLabel(qualification.type)}
-                        </Badge>
-                        {qualification.level && (
-                          <Badge variant="secondary">
-                            {qualification.level}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div>
-                          Obtenue le{" "}
-                          {format(new Date(qualification.obtainedDate), "PPP", {
-                            locale: fr,
-                          })}
-                        </div>
-                        {qualification.validUntil && (
-                          <div>
-                            Valide jusqu&apos;au{" "}
-                            {format(new Date(qualification.validUntil), "PPP", {
-                              locale: fr,
-                            })}
-                          </div>
-                        )}
-                        {qualification.organization && (
-                          <div>Organisme : {qualification.organization}</div>
-                        )}
-                        {qualification.certificateNumber && (
-                          <div>N° {qualification.certificateNumber}</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Badge variant={getStatusColor(qualification.status)}>
-                    {getStatusLabel(qualification.status)}
-                  </Badge>
-                </div>
+                  qualification={qualification}
+                  getStatusIcon={getStatusIcon}
+                  getTypeLabel={getTypeLabel}
+                  getStatusColor={getStatusColor}
+                  getStatusLabel={getStatusLabel}
+                />
               ))}
             </div>
           </div>
@@ -204,3 +158,65 @@ export function QualificationsList({
     </Card>
   );
 }
+
+const QualificationItem = React.memo(function QualificationItem({
+  qualification,
+  getStatusIcon,
+  getTypeLabel,
+  getStatusColor,
+  getStatusLabel,
+}: {
+  qualification: Qualification;
+  getStatusIcon: (status: string, validUntil?: string) => React.ReactNode;
+  getTypeLabel: (type: string) => string;
+  getStatusColor: (status: string) => "default" | "secondary" | "destructive" | "outline";
+  getStatusLabel: (status: string) => string;
+}) {
+  return (
+    <div className="flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-accent">
+      <div className="flex flex-1 items-start gap-3">
+        <div className="mt-1">
+          {getStatusIcon(qualification.status, qualification.validUntil)}
+        </div>
+        <div className="flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="font-medium">{qualification.name}</span>
+            <Badge variant="outline">
+              {getTypeLabel(qualification.type)}
+            </Badge>
+            {qualification.level && (
+              <Badge variant="secondary">{qualification.level}</Badge>
+            )}
+          </div>
+
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <div>
+              Obtenue le{" "}
+              {format(new Date(qualification.obtainedDate), "PPP", {
+                locale: fr,
+              })}
+            </div>
+            {qualification.validUntil && (
+              <div>
+                Valide jusqu&apos;au{" "}
+                {format(new Date(qualification.validUntil), "PPP", {
+                  locale: fr,
+                })}
+              </div>
+            )}
+            {qualification.organization && (
+              <div>Organisme : {qualification.organization}</div>
+            )}
+            {qualification.certificateNumber && (
+              <div>N° {qualification.certificateNumber}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Badge variant={getStatusColor(qualification.status)}>
+        {getStatusLabel(qualification.status)}
+      </Badge>
+    </div>
+  );
+});

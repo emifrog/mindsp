@@ -60,8 +60,8 @@ export function FMPATable({ fmpas, onDelete }: FMPATableProps) {
   const router = useRouter();
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="overflow-x-auto rounded-md border">
+      <Table className="min-w-[700px]">
         <TableHeader>
           <TableRow>
             <TableHead>Type</TableHead>

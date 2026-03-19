@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { Icons } from "@/lib/icons";
@@ -22,7 +22,7 @@ interface MessageProps {
   showAvatar: boolean;
 }
 
-export function Message({ message, showAvatar }: MessageProps) {
+export const Message = React.memo(function Message({ message, showAvatar }: MessageProps) {
   const [showActions, setShowActions] = useState(false);
   const { addReaction, removeReaction, deleteMessage } = useChatChannel(
     message.channelId
@@ -210,4 +210,4 @@ export function Message({ message, showAvatar }: MessageProps) {
       )}
     </div>
   );
-}
+});

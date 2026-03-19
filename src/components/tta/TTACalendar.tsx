@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,17 +38,14 @@ export function TTACalendar({ entries, onDateClick }: TTACalendarProps) {
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const getEntriesForDate = (date: Date) => {
-    return entries.filter((entry) => isSameDay(new Date(entry.date), date));
-  };
-
-  const getDayTotal = (date: Date) => {
-    const dayEntries = getEntriesForDate(date);
-    return {
-      hours: dayEntries.reduce((sum, e) => sum + e.hours, 0),
-      amount: dayEntries.reduce((sum, e) => sum + e.totalAmount, 0),
-    };
-  };
+  const entriesByDate = useMemo(() => {
+    const map = new Map<string, TTAEntry[]>();
+    entries.forEach((e) => {
+      const key = new Date(e.date).toDateString();
+      map.set(key, [...(map.get(key) || []), e]);
+    });
+    return map;
+  }, [entries]);
 
   const getActivityColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -108,8 +105,11 @@ export function TTACalendar({ entries, onDateClick }: TTACalendarProps) {
 
           {/* Jours du mois */}
           {days.map((day) => {
-            const dayEntries = getEntriesForDate(day);
-            const dayTotal = getDayTotal(day);
+            const dayEntries = entriesByDate.get(day.toDateString()) || [];
+            const dayTotal = {
+              hours: dayEntries.reduce((sum, e) => sum + e.hours, 0),
+              amount: dayEntries.reduce((sum, e) => sum + e.totalAmount, 0),
+            };
             const isToday = isSameDay(day, new Date());
 
             return (

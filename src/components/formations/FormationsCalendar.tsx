@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,13 +46,19 @@ export function FormationsCalendar({
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const getFormationsForDate = (date: Date) => {
-    return formations.filter((formation) => {
-      const start = new Date(formation.startDate);
-      const end = new Date(formation.endDate);
-      return date >= start && date <= end;
+  const formationsByDate = useMemo(() => {
+    const map = new Map<string, Formation[]>();
+    formations.forEach((f) => {
+      let d = new Date(f.startDate);
+      const end = new Date(f.endDate);
+      while (d <= end) {
+        const key = d.toDateString();
+        map.set(key, [...(map.get(key) || []), f]);
+        d = new Date(d.getTime() + 86400000);
+      }
     });
-  };
+    return map;
+  }, [formations]);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -127,7 +133,7 @@ export function FormationsCalendar({
 
           {/* Jours du mois */}
           {days.map((day) => {
-            const dayFormations = getFormationsForDate(day);
+            const dayFormations = formationsByDate.get(day.toDateString()) || [];
             const isToday = isSameDay(day, new Date());
 
             return (

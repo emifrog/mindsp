@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,16 +69,14 @@ export function FMPACalendar() {
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
-  const getFMPAsForDate = (date: Date) => {
-    return fmpas.filter((fmpa) => {
-      const fmpaDate = new Date(fmpa.startDate);
-      return (
-        fmpaDate.getDate() === date.getDate() &&
-        fmpaDate.getMonth() === date.getMonth() &&
-        fmpaDate.getFullYear() === date.getFullYear()
-      );
+  const fmpasByDate = useMemo(() => {
+    const map = new Map<string, FMPAItem[]>();
+    fmpas.forEach((f) => {
+      const key = new Date(f.startDate).toDateString();
+      map.set(key, [...(map.get(key) || []), f]);
     });
-  };
+    return map;
+  }, [fmpas]);
 
   const previousMonth = () => {
     setCurrentDate(
@@ -153,7 +151,7 @@ export function FMPACalendar() {
               }
 
               const date = new Date(year, month, day);
-              const dayFMPAs = getFMPAsForDate(date);
+              const dayFMPAs = fmpasByDate.get(date.toDateString()) || [];
               const isToday = date.toDateString() === new Date().toDateString();
 
               return (

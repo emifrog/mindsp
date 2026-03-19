@@ -5,6 +5,7 @@ import { Icons } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface FilePreviewProps {
   file: {
@@ -65,10 +66,11 @@ export function FilePreview({
         <div className="shrink-0">
           {isImage ? (
             <div className="relative h-12 w-12 overflow-hidden rounded bg-muted">
-              <img
+              <Image
                 src={file.url}
                 alt={file.name}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
           ) : (
