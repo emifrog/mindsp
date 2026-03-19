@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { NavigationLoader } from "@/components/providers/NavigationLoader";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import Script from "next/script";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -54,6 +55,7 @@ export default function RootLayout({
           <SessionProvider>
             <NavigationLoader />
             {children}
+            <CookieConsent />
           </SessionProvider>
         </ThemeProvider>
       </body>

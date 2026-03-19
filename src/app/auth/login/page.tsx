@@ -150,23 +150,25 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 space-y-2 text-center text-sm">
-            <p className="text-muted-foreground">
-              Comptes de test disponibles :
-            </p>
-            <div className="rounded-lg bg-muted p-3 text-left">
-              <p className="font-mono text-xs">
-                <strong>SDIS13 Admin:</strong>
-                <br />
-                admin@sdis13.fr / Password123!
+          {process.env.NODE_ENV === "development" && (
+            <div className="mt-6 space-y-2 text-center text-sm">
+              <p className="text-muted-foreground">
+                Comptes de test (dev uniquement) :
               </p>
-              <p className="mt-2 font-mono text-xs">
-                <strong>SDIS06 Admin:</strong>
-                <br />
-                admin@sdis06.fr / Password123!
-              </p>
+              <div className="rounded-lg bg-muted p-3 text-left">
+                <p className="font-mono text-xs">
+                  <strong>SDIS13 Admin:</strong>
+                  <br />
+                  admin@sdis13.fr / Password123!
+                </p>
+                <p className="mt-2 font-mono text-xs">
+                  <strong>SDIS06 Admin:</strong>
+                  <br />
+                  admin@sdis06.fr / Password123!
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
