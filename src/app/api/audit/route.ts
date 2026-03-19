@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { getTenantAuditLogs, getUserAuditLogs } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/audit - Récupérer les logs d'audit
 export async function GET(request: NextRequest) {
   try {

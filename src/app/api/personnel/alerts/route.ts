@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { addDays, isBefore, isAfter } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/personnel/alerts - Récupérer les alertes d'expiration
 export async function GET(request: NextRequest) {
   try {

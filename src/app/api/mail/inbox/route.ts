@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/mail/inbox - Boîte de réception
 export async function GET(request: NextRequest) {
   try {

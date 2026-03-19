@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { getQueueStats } from "@/lib/queue";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/admin/queues/stats - Stats des queues
 export async function GET(request: NextRequest) {
   try {

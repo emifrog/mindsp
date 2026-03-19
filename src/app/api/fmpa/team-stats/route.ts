@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth-config";
 import { exportTeamStatistics } from "@/lib/fmpa-exports";
 import * as XLSX from "xlsx";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/fmpa/team-stats?period=month|year&format=json|excel
 export async function GET(request: NextRequest) {
   try {

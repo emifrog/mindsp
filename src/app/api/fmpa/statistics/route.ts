@@ -10,6 +10,8 @@ import {
   differenceInHours,
 } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/fmpa/statistics - Statistiques globales FMPA
 export async function GET(request: NextRequest) {
   try {

@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/messaging/directory - Annuaire RH avec recherche intelligente
 export async function GET(request: NextRequest) {
   try {

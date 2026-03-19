@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { CacheService, CACHE_TTL } from "@/lib/cache";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/users - Liste des utilisateurs du tenant
 export async function GET(request: NextRequest) {
   try {
