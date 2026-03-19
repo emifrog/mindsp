@@ -80,7 +80,7 @@ export default function PortailsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
             <Icon name="🚪" size="xl" />
             Portails
           </h1>

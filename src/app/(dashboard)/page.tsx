@@ -71,7 +71,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Tableau de bord</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Tableau de bord</h1>
           <p className="text-muted-foreground">
             Bienvenue {user?.name} - {tenantSlug?.toUpperCase()}
           </p>

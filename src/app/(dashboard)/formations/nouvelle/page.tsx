@@ -144,7 +144,7 @@ export default function NewFormationPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nouvelle formation</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nouvelle formation</h1>
           <p className="text-muted-foreground">Créez une nouvelle formation</p>
         </div>
       </div>

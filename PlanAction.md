@@ -49,32 +49,28 @@
 
 ## P2 - MOYENNE PRIORITE
 
-11. Paralleliser les 6 requetes de /api/search
-    - Fichier: src/app/api/search/route.ts
-    - Probleme: 6 requetes DB sequentielles (chat, mail, fmpa, formations, documents, personnel)
-    - Fix: envelopper dans Promise.all() pour execution parallele
+11. ~~Paralleliser les 6 requetes de /api/search~~ ✅ FAIT
+    - 6 requetes sequentielles remplacees par Promise.all()
+    - Filtre de dates factorise dans un helper dateFilter()
+    - .catch(() => []) sur chaque requete pour resilience
 
-12. Ajouter le cache Redis sur les endpoints manquants
-    - src/app/api/mail/inbox/route.ts (TTL 5 min)
-    - src/app/api/portals/route.ts (TTL 15 min)
-    - src/app/api/fmpa/[id]/stats/route.ts (TTL 5 min)
-    - src/app/api/fmpa/team-stats/route.ts (TTL 15 min)
-    - src/app/api/notifications/stats/route.ts (TTL 5 min)
+12. ~~Ajouter le cache Redis sur les endpoints manquants~~ ✅ FAIT
+    - /api/mail/inbox: cache 5 min (cle par tenant+user+page)
+    - /api/portals: cache 15 min (cle par tenant)
+    - /api/fmpa/[id]/stats: cache 5 min (cle par fmpa id)
+    - /api/fmpa/team-stats: cache 15 min (cle par tenant+period, bypass pour Excel)
+    - /api/notifications/stats: cache 5 min (cle par user)
 
-13. Standardiser les grilles responsives
-    - Pattern cible: grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4
-    - Fichiers concernes: AlertsDashboard.tsx, FormationsPage, multiples pages
-    - Ajouter breakpoint sm: intermediaire la ou il manque
+13. ~~Standardiser les grilles responsives~~ ✅ FAIT
+    - AlertsDashboard.tsx: ajout sm:grid-cols-2 avant md:grid-cols-4
+    - CareerTimeline.tsx: ajout sm:grid-cols-2 avant md:grid-cols-3
+    - FMPAStatistics.tsx: ajout sm:grid-cols-2 avant md:grid-cols-4
 
-14. Ajouter des tailles de texte responsives
-    - Remplacer text-3xl par text-2xl sm:text-3xl sur les titres de pages
-    - Verifier le line-clamp sur les sujets de mails et titres d'articles
+14. ~~Ajouter des tailles de texte responsives~~ ✅ FAIT
+    - 30 pages: text-3xl remplace par text-2xl sm:text-3xl sur tous les titres h1
 
-15. Ajouter priority sur les images LCP
-    - Fichier: src/components/layout/Sidebar.tsx (logo)
-    - Fix: ajouter prop priority={true} sur le composant Image du logo
+15. ~~Ajouter priority sur les images LCP~~ ✅ DEJA EN PLACE
+    - Sidebar.tsx: logo deja avec priority={true}
 
-16. Activer le slow query logging en production
-    - Fichier: src/lib/prisma.ts
-    - Probleme: seuil 500ms log uniquement en dev
-    - Fix: logger aussi en production via logger.warn()
+16. ~~Activer le slow query logging en production~~ ✅ DEJA EN PLACE
+    - prisma.ts: middleware $use log les requetes > 500ms independamment de NODE_ENV

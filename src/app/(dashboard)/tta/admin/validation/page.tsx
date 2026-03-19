@@ -202,7 +202,7 @@ export default function TTAValidationPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Validation TTA</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Validation TTA</h1>
         <p className="text-muted-foreground">
           Validez les saisies de temps de travail additionnel
         </p>

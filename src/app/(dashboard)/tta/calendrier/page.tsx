@@ -94,7 +94,7 @@ export default function TTACalendarPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Calendrier TTA</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Calendrier TTA</h1>
             <p className="text-muted-foreground">
               Vue mensuelle de vos heures de travail additionnel
             </p>

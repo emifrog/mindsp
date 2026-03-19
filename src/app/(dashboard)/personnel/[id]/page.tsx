@@ -179,7 +179,7 @@ export default function PersonnelDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">Fiche Personnel</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Fiche Personnel</h1>
           <p className="text-muted-foreground">
             Informations détaillées et historique
           </p>

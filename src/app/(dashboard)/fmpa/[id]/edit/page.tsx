@@ -164,7 +164,7 @@ export default function EditFMPAPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Modifier la FMPA</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Modifier la FMPA</h1>
           <p className="text-muted-foreground">{fmpa.title}</p>
         </div>
         <Button variant="ghost" asChild>

@@ -174,7 +174,7 @@ export default function DisponibilitesPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Mes disponibilités</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Mes disponibilités</h1>
             <p className="text-muted-foreground">
               Gérez vos périodes de disponibilité
             </p>

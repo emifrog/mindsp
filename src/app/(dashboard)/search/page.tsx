@@ -180,7 +180,7 @@ export default function SearchPage() {
     <div className="container mx-auto max-w-5xl p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="mb-4 flex items-center gap-3 text-3xl font-bold">
+        <h1 className="mb-4 flex items-center gap-3 text-2xl sm:text-3xl font-bold">
           <Icon name="🔍" size="xl" />
           Recherche Avancée
         </h1>

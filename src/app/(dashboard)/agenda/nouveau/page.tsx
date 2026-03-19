@@ -36,7 +36,7 @@ export default function NewEventPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nouvel événement</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nouvel événement</h1>
           <p className="text-muted-foreground">
             Créez un événement dans le calendrier
           </p>

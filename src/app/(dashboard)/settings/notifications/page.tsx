@@ -112,7 +112,7 @@ export default function NotificationPreferencesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Préférences de notifications</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Préférences de notifications</h1>
         <p className="text-muted-foreground">
           Gérez vos préférences de notifications
         </p>

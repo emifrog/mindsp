@@ -109,7 +109,7 @@ export default function EditEventPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Modifier l&apos;événement</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Modifier l&apos;événement</h1>
           <p className="text-muted-foreground">
             Modifiez les détails de votre événement
           </p>

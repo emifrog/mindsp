@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 // GET /api/fmpa/[id]/stats - Statistiques d'une FMPA
 export async function GET(
@@ -12,6 +13,12 @@ export async function GET(
 
     if (!session) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const cacheKey = `fmpa:stats:${params.id}`;
+    const cached = await CacheService.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     // Vérifier que la FMPA existe
@@ -89,7 +96,7 @@ export async function GET(
       _count: true,
     });
 
-    return NextResponse.json({
+    const response = {
       total: totalParticipations,
       byStatus: {
         registered: registeredCount,
@@ -120,7 +127,9 @@ export async function GET(
           ? totalParticipations >= fmpa.maxParticipants
           : false,
       },
-    });
+    };
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur GET /api/fmpa/[id]/stats:", error);
     return NextResponse.json(

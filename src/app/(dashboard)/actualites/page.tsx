@@ -110,7 +110,7 @@ export default function ActualitesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="flex items-center gap-3 text-3xl font-bold">
+        <h1 className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
           <Icon name={Icons.info.info} size="xl" />
           Actualités
         </h1>

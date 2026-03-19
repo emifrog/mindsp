@@ -155,7 +155,7 @@ export default function TTAExportPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Export TTA</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Export TTA</h1>
         <p className="text-muted-foreground">
           Exportez les saisies validées au format SEPA ou CSV
         </p>

@@ -80,7 +80,7 @@ export default function FormationsCalendarPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Calendrier des Formations</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Calendrier des Formations</h1>
             <p className="text-muted-foreground">
               Vue mensuelle des formations disponibles
             </p>

@@ -36,7 +36,7 @@ export default function NewFMPAPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Créer une FMPA</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Créer une FMPA</h1>
           <p className="text-muted-foreground">
             Créez une nouvelle Formation, Manœuvre ou Présence Active
           </p>

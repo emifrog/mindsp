@@ -125,7 +125,7 @@ export default function NewConversationPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Nouvelle conversation</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nouvelle conversation</h1>
           <p className="text-muted-foreground">
             Créez une conversation directe ou un groupe
           </p>

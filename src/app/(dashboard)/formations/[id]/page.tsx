@@ -197,7 +197,7 @@ export default function FormationDetailPage() {
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">{formation.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{formation.title}</h1>
             <Badge>{formation.code}</Badge>
           </div>
           <p className="text-muted-foreground">{formation.category}</p>

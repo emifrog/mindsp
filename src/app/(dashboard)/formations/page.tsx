@@ -168,7 +168,7 @@ export default function FormationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Formations</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Formations</h1>
           <p className="text-muted-foreground">
             Catalogue des formations disponibles
           </p>

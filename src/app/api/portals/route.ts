@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 // GET /api/portals - Liste des portails avec pagination
 export async function GET(request: NextRequest) {
@@ -9,6 +10,12 @@ export async function GET(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const cacheKey = `portals:${session.user.tenantId}`;
+    const cached = await CacheService.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     const { searchParams } = new URL(request.url);
@@ -43,7 +50,7 @@ export async function GET(request: NextRequest) {
       prisma.portal.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const response = {
       portals,
       pagination: {
         page,
@@ -52,7 +59,9 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
         hasMore: skip + portals.length < total,
       },
-    });
+    };
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_LONG });
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur GET /api/portals:", error);
     return NextResponse.json(

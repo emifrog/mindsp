@@ -50,312 +50,162 @@ export async function GET(request: NextRequest) {
       url: string;
     }
 
-    const results: Record<string, SearchResult[]> = {
-      chat: [],
-      mail: [],
-      fmpa: [],
-      formations: [],
-      documents: [],
-      personnel: [],
-    };
+    // Construire le filtre de dates réutilisable
+    const dateFilter = (field: string) =>
+      dateFrom && dateTo
+        ? { [field]: { gte: new Date(dateFrom), lte: new Date(dateTo) } }
+        : dateFrom
+          ? { [field]: { gte: new Date(dateFrom) } }
+          : dateTo
+            ? { [field]: { lte: new Date(dateTo) } }
+            : {};
 
-    // Recherche dans Chat
-    if (!type || type === "all" || type === "chat") {
-      try {
-        const chatMessages = await prisma.chatMessage.findMany({
-          where: {
-            channel: {
+    const shouldSearch = (t: string) => !type || type === "all" || type === t;
+
+    // Lancer toutes les recherches en parallèle
+    const [chatResults, mailResults, fmpaResults, formationResults, documentResults, personnelResults] = await Promise.all([
+      // Chat
+      shouldSearch("chat")
+        ? prisma.chatMessage.findMany({
+            where: {
+              channel: { tenantId: session.user.tenantId },
+              content: { contains: query, mode: "insensitive" },
+              ...dateFilter("createdAt"),
+            },
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+              channel: { select: { id: true, name: true, type: true } },
+            },
+            orderBy: { createdAt: "desc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
+
+      // Mail
+      shouldSearch("mail")
+        ? prisma.mailMessage.findMany({
+            where: {
               tenantId: session.user.tenantId,
+              OR: [
+                { subject: { contains: query, mode: "insensitive" } },
+                { body: { contains: query, mode: "insensitive" } },
+              ],
+              ...dateFilter("createdAt"),
             },
-            content: {
-              contains: query,
-              mode: "insensitive",
+            include: {
+              from: { select: { id: true, firstName: true, lastName: true, avatar: true } },
             },
-            ...(dateFrom && dateTo
-              ? {
-                  createdAt: {
-                    gte: new Date(dateFrom),
-                    lte: new Date(dateTo),
-                  },
-                }
-              : dateFrom
-                ? { createdAt: { gte: new Date(dateFrom) } }
-                : dateTo
-                  ? { createdAt: { lte: new Date(dateTo) } }
-                  : {}),
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-              },
+            orderBy: { createdAt: "desc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
+
+      // FMPA
+      shouldSearch("fmpa")
+        ? prisma.fMPA.findMany({
+            where: {
+              tenantId: session.user.tenantId,
+              OR: [
+                { title: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+                { location: { contains: query, mode: "insensitive" } },
+              ],
+              ...dateFilter("startDate"),
             },
-            channel: {
-              select: {
-                id: true,
-                name: true,
-                type: true,
-              },
+            include: {
+              createdBy: { select: { id: true, firstName: true, lastName: true } },
             },
-          },
-          orderBy: { createdAt: "desc" },
-          take: limit,
-        });
+            orderBy: { startDate: "desc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
 
-        results.chat = chatMessages.map((msg) => ({
-          id: msg.id,
-          type: "chat",
-          title: `#${msg.channel.name}`,
-          content: msg.content,
-          author: `${msg.user.firstName} ${msg.user.lastName}`,
-          date: msg.createdAt,
-          url: `/chat?channel=${msg.channelId}`,
-        }));
-      } catch (error) {
-        console.error("Erreur recherche Chat:", error);
-        results.chat = [];
-      }
-    }
-
-    // Recherche dans Mailbox
-    if (!type || type === "all" || type === "mail") {
-      try {
-        const mailMessages = await prisma.mailMessage.findMany({
-          where: {
-            tenantId: session.user.tenantId,
-            OR: [
-              { subject: { contains: query, mode: "insensitive" } },
-              { body: { contains: query, mode: "insensitive" } },
-            ],
-            ...(dateFrom && dateTo
-              ? {
-                  createdAt: {
-                    gte: new Date(dateFrom),
-                    lte: new Date(dateTo),
-                  },
-                }
-              : dateFrom
-                ? { createdAt: { gte: new Date(dateFrom) } }
-                : dateTo
-                  ? { createdAt: { lte: new Date(dateTo) } }
-                  : {}),
-          },
-          include: {
-            from: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-              },
+      // Formations
+      shouldSearch("formation")
+        ? prisma.formation.findMany({
+            where: {
+              tenantId: session.user.tenantId,
+              OR: [
+                { title: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+              ],
+              ...dateFilter("startDate"),
             },
-          },
-          orderBy: { createdAt: "desc" },
-          take: limit,
-        });
+            orderBy: { startDate: "desc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
 
-        results.mail = mailMessages.map((mail) => ({
-          id: mail.id,
-          type: "mail",
-          title: mail.subject,
-          content: mail.body.substring(0, 200),
-          author: `${mail.from.firstName} ${mail.from.lastName}`,
-          date: mail.createdAt,
-          url: `/mailbox?message=${mail.id}`,
-        }));
-      } catch (error) {
-        console.error("Erreur recherche Mail:", error);
-        results.mail = [];
-      }
-    }
-
-    // Recherche dans FMPA
-    if (!type || type === "all" || type === "fmpa") {
-      try {
-        const fmpas = await prisma.fMPA.findMany({
-          where: {
-            tenantId: session.user.tenantId,
-            OR: [
-              { title: { contains: query, mode: "insensitive" } },
-              { description: { contains: query, mode: "insensitive" } },
-              { location: { contains: query, mode: "insensitive" } },
-            ],
-            ...(dateFrom && dateTo
-              ? {
-                  startDate: {
-                    gte: new Date(dateFrom),
-                    lte: new Date(dateTo),
-                  },
-                }
-              : dateFrom
-                ? { startDate: { gte: new Date(dateFrom) } }
-                : dateTo
-                  ? { startDate: { lte: new Date(dateTo) } }
-                  : {}),
-          },
-          include: {
-            createdBy: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
+      // Documents
+      shouldSearch("document")
+        ? prisma.portalDocument.findMany({
+            where: {
+              tenantId: session.user.tenantId,
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+              ],
+              ...dateFilter("createdAt"),
             },
-          },
-          orderBy: { startDate: "desc" },
-          take: limit,
-        });
-
-        results.fmpa = fmpas.map((fmpa) => ({
-          id: fmpa.id,
-          type: "fmpa",
-          title: fmpa.title,
-          content: fmpa.description || "",
-          author: `${fmpa.createdBy.firstName} ${fmpa.createdBy.lastName}`,
-          date: fmpa.startDate,
-          url: `/fmpa/${fmpa.id}`,
-        }));
-      } catch (error) {
-        console.error("Erreur recherche FMPA:", error);
-        results.fmpa = [];
-      }
-    }
-
-    // Recherche dans Formations
-    if (!type || type === "all" || type === "formation") {
-      try {
-        const formations = await prisma.formation.findMany({
-          where: {
-            tenantId: session.user.tenantId,
-            OR: [
-              { title: { contains: query, mode: "insensitive" } },
-              { description: { contains: query, mode: "insensitive" } },
-            ],
-            ...(dateFrom && dateTo
-              ? {
-                  startDate: {
-                    gte: new Date(dateFrom),
-                    lte: new Date(dateTo),
-                  },
-                }
-              : dateFrom
-                ? { startDate: { gte: new Date(dateFrom) } }
-                : dateTo
-                  ? { startDate: { lte: new Date(dateTo) } }
-                  : {}),
-          },
-          orderBy: { startDate: "desc" },
-          take: limit,
-        });
-
-        results.formations = formations.map((formation) => ({
-          id: formation.id,
-          type: "formation",
-          title: formation.title,
-          content: formation.description || "",
-          author: "Formation",
-          date: formation.startDate,
-          url: `/formations/${formation.id}`,
-        }));
-      } catch (error) {
-        console.error("Erreur recherche Formations:", error);
-        results.formations = [];
-      }
-    }
-
-    // Recherche dans Documents (si le modèle existe)
-    if (!type || type === "all" || type === "document") {
-      try {
-        const documents = await prisma.portalDocument.findMany({
-          where: {
-            tenantId: session.user.tenantId,
-            OR: [
-              { name: { contains: query, mode: "insensitive" } },
-              { description: { contains: query, mode: "insensitive" } },
-            ],
-            ...(dateFrom && dateTo
-              ? {
-                  createdAt: {
-                    gte: new Date(dateFrom),
-                    lte: new Date(dateTo),
-                  },
-                }
-              : dateFrom
-                ? { createdAt: { gte: new Date(dateFrom) } }
-                : dateTo
-                  ? { createdAt: { lte: new Date(dateTo) } }
-                  : {}),
-          },
-          include: {
-            uploadedBy: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
+            include: {
+              uploadedBy: { select: { id: true, firstName: true, lastName: true } },
             },
-          },
-          orderBy: { createdAt: "desc" },
-          take: limit,
-        });
+            orderBy: { createdAt: "desc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
 
-        results.documents = documents.map((doc) => ({
-          id: doc.id,
-          type: "document",
-          title: doc.name,
-          content: doc.description || "",
-          author: "Document",
-          date: doc.createdAt,
-          url: `/documents/${doc.id}`,
-        }));
-      } catch (error) {
-        // Si le modèle n'existe pas encore
-        results.documents = [];
-      }
-    }
+      // Personnel
+      shouldSearch("personnel")
+        ? prisma.user.findMany({
+            where: {
+              tenantId: session.user.tenantId,
+              OR: [
+                { firstName: { contains: query, mode: "insensitive" } },
+                { lastName: { contains: query, mode: "insensitive" } },
+                { email: { contains: query, mode: "insensitive" } },
+              ],
+            },
+            select: { id: true, firstName: true, lastName: true, email: true, avatar: true, role: true, createdAt: true },
+            orderBy: { lastName: "asc" },
+            take: limit,
+          }).catch(() => [])
+        : Promise.resolve([]),
+    ]);
 
-    // Recherche dans Personnel
-    if (!type || type === "all" || type === "personnel") {
-      try {
-        const users = await prisma.user.findMany({
-          where: {
-            tenantId: session.user.tenantId,
-            OR: [
-              { firstName: { contains: query, mode: "insensitive" } },
-              { lastName: { contains: query, mode: "insensitive" } },
-              { email: { contains: query, mode: "insensitive" } },
-            ],
-          },
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            avatar: true,
-            role: true,
-            createdAt: true,
-          },
-          orderBy: { lastName: "asc" },
-          take: limit,
-        });
-
-        results.personnel = users.map((user) => ({
-          id: user.id,
-          type: "personnel",
-          title: `${user.firstName} ${user.lastName}`,
-          content: user.email,
-          author: user.role,
-          date: user.createdAt,
-          url: `/personnel/${user.id}`,
-        }));
-      } catch (error) {
-        console.error("Erreur recherche Personnel:", error);
-        results.personnel = [];
-      }
-    }
+    // Transformer les résultats
+    const results: Record<string, SearchResult[]> = {
+      chat: (chatResults as any[]).map((msg) => ({
+        id: msg.id, type: "chat", title: `#${msg.channel.name}`,
+        content: msg.content, author: `${msg.user.firstName} ${msg.user.lastName}`,
+        date: msg.createdAt, url: `/chat?channel=${msg.channelId}`,
+      })),
+      mail: (mailResults as any[]).map((mail) => ({
+        id: mail.id, type: "mail", title: mail.subject,
+        content: mail.body.substring(0, 200), author: `${mail.from.firstName} ${mail.from.lastName}`,
+        date: mail.createdAt, url: `/mailbox?message=${mail.id}`,
+      })),
+      fmpa: (fmpaResults as any[]).map((fmpa) => ({
+        id: fmpa.id, type: "fmpa", title: fmpa.title,
+        content: fmpa.description || "", author: `${fmpa.createdBy.firstName} ${fmpa.createdBy.lastName}`,
+        date: fmpa.startDate, url: `/fmpa/${fmpa.id}`,
+      })),
+      formations: (formationResults as any[]).map((f) => ({
+        id: f.id, type: "formation", title: f.title,
+        content: f.description || "", author: "Formation",
+        date: f.startDate, url: `/formations/${f.id}`,
+      })),
+      documents: (documentResults as any[]).map((doc) => ({
+        id: doc.id, type: "document", title: doc.name,
+        content: doc.description || "", author: "Document",
+        date: doc.createdAt, url: `/documents/${doc.id}`,
+      })),
+      personnel: (personnelResults as any[]).map((user) => ({
+        id: user.id, type: "personnel", title: `${user.firstName} ${user.lastName}`,
+        content: user.email, author: user.role,
+        date: user.createdAt, url: `/personnel/${user.id}`,
+      })),
+    };
 
     const total =
       results.chat.length +

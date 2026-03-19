@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { CacheService, CACHE_TTL } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "50");
     const unreadOnly = searchParams.get("unreadOnly") === "true";
+
+    const cacheKey = `mail:inbox:${session.user.tenantId}:${session.user.id}:${page}:${limit}`;
+    const cached = await CacheService.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
 
     const where: Prisma.MailRecipientWhereInput = {
       userId: session.user.id,
@@ -83,7 +90,7 @@ export async function GET(request: NextRequest) {
       },
     }));
 
-    return NextResponse.json({
+    const response = {
       messages,
       pagination: {
         page,
@@ -92,7 +99,9 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
       unreadCount,
-    });
+    };
+    await CacheService.set(cacheKey, response, { ttl: CACHE_TTL.LIST_SHORT });
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erreur GET /api/mail/inbox:", error);
     return NextResponse.json(

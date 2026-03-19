@@ -215,7 +215,7 @@ export default function TTAPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Temps de Travail Additionnel</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Temps de Travail Additionnel</h1>
           <p className="text-muted-foreground">
             Saisissez vos heures pour le mois en cours
           </p>

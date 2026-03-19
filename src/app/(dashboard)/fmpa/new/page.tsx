@@ -89,7 +89,7 @@ export default function NewFMPAPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Créer une FMPA</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Créer une FMPA</h1>
           <p className="text-muted-foreground">
             Formation, Manœuvre ou Présence Active
           </p>
