@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // Experimental features
@@ -23,14 +23,17 @@ const nextConfig = {
 
   // Security headers
   async headers() {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socketWs = socketUrl.replace(/^http/, "ws");
+
     // Content Security Policy
     const cspHeader = `
       default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net;
+      script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https://utfs.io https://*.uploadthing.com;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://api.uploadthing.com https://*.upstash.io wss://localhost:3001 ws://localhost:3001 wss://*.onrender.com;
+      connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app;
       media-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
