@@ -1,7 +1,7 @@
 # 📋 Spécifications Techniques - MindSP
 
-**Version :** 1.0  
-**Date :** 04 Octobre 2025  
+**Version :** 2.1
+**Date :** 19 Mars 2026
 **Projet :** Solution SaaS de gestion SDIS
 
 ---
@@ -30,25 +30,37 @@
 
 ```yaml
 Frontend:
-  - Framework: Next.js 14.2+ (App Router)
-  - Language: TypeScript 5.3+
-  - UI Library: React 18.2+
-  - Styling: TailwindCSS 3.4+ + Shadcn/ui
-  - State Management: Zustand 4.5+
-  - Forms: React Hook Form 7.50+ + Zod 3.22+
-  - HTTP Client: Fetch API native
-  - WebSocket: Socket.IO Client 4.7+
-  
+  - Framework: Next.js 14.2 (App Router)
+  - Language: TypeScript 5.6
+  - UI Library: React 18.3
+  - Styling: TailwindCSS 3.4 + Shadcn/ui + Radix UI
+  - State Management: Zustand + SWR 2.4 (cache client)
+  - Forms: React Hook Form + Zod
+  - HTTP Client: Fetch API native + SWR
+  - Temps reel: Supabase Realtime
+  - Animations: Framer Motion
+  - Icons: Lucide React
+  - PDF: jsPDF + html2canvas
+
 Backend:
   - Runtime: Node.js 20+ LTS
-  - Framework: Next.js API Routes
-  - ORM: Prisma 5.10+
-  - Database: PostgreSQL 16+
-  - Cache: Redis 7+ (Upstash ou local)
-  - Auth: NextAuth.js 5+ (Auth.js)
-  - WebSocket: Socket.IO 4.7+
-  - Queue: BullMQ 5+ (avec Redis)
-  
+  - Framework: Next.js 14 API Routes (71 routes)
+  - ORM: Prisma 5.20 (59 modeles, 49 enums)
+  - Database: PostgreSQL (Supabase)
+  - Cache: Upstash Redis (TTL 5-60 min, invalidation cascade)
+  - Auth: NextAuth.js v5 (JWT, multi-tenant)
+  - Queue: BullMQ (optionnel)
+  - Rate Limiting: Upstash Ratelimit (4 niveaux)
+  - Email: Resend
+  - Monitoring: Sentry (error tracking)
+
+Infrastructure:
+  - Hosting: Vercel (region cdg1 - Paris)
+  - Database: PostgreSQL (Supabase)
+  - Cache: Upstash Redis
+  - Storage: UploadThing
+  - CI/CD: GitHub Actions
+
 ```
 
 ### 1.2 Architecture Système
@@ -56,36 +68,39 @@ Backend:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Client Browser/PWA                    │
-│  Next.js 14 (React) + TailwindCSS + Socket.IO Client   │
+│  Next.js 14 (React 18) + TailwindCSS + SWR + Sentry   │
 └────────────┬───────────────────────────┬────────────────┘
              │                           │
-             │ HTTPS/REST               │ WebSocket
+             │ HTTPS/REST               │ Supabase Realtime
              │                           │
 ┌────────────▼───────────────────────────▼────────────────┐
-│              Next.js App Router (Edge/Node)              │
+│              Next.js App Router (Vercel - cdg1)         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │  API Routes  │  │  Middleware  │  │  Socket.IO   │ │
-│  │              │  │  - Auth      │  │   Server     │ │
-│  │  - /api/auth │  │  - Tenant    │  │              │ │
-│  │  - /api/fmpa │  │  - Rate Limit│  │              │ │
-│  │  - /api/...  │  │              │  │              │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘ │
-└─────────┼──────────────────┼──────────────────┼─────────┘
-          │                  │                  │
-          │                  │                  │
-┌─────────▼──────────┐  ┌───▼────────┐  ┌─────▼──────────┐
-│  Prisma ORM        │  │   Redis    │  │   BullMQ       │
-│  (Connection Pool) │  │            │  │   (Queues)     │
-└─────────┬──────────┘  │  - Session │  │                │
-          │             │  - Cache   │  │  - Emails      │
-          │             │  - Pub/Sub │  │  - Notifs      │
-          │             └────────────┘  └────────────────┘
+│  │  71 API      │  │  Middleware  │  │  Supabase    │ │
+│  │  Routes      │  │  - Auth     │  │  Realtime    │ │
+│  │              │  │  - Tenant   │  │  (Chat, etc) │ │
+│  │              │  │  - Rate Lim │  │              │ │
+│  └──────┬───────┘  └──────┬───────┘  └──────────────┘ │
+└─────────┼──────────────────┼────────────────────────────┘
+          │                  │
+┌─────────▼──────────┐  ┌───▼────────────────────────────┐
+│  Prisma 5          │  │   Upstash Redis                │
+│  59 modeles        │  │   - Cache (TTL 5-60 min)       │
+│  Slow query >500ms │  │   - Rate Limiting (4 niveaux)  │
+└─────────┬──────────┘  │   - Session                    │
+          │             └────────────────────────────────┘
 ┌─────────▼──────────────────────────────────────────────┐
-│              PostgreSQL 16 Database                     │
-│  - Multi-tenant (tenant_id partitioning)               │
-│  - JSONB for flexible data                             │
-│  - Full-text search                                    │
+│              PostgreSQL (Supabase)                      │
+│  - Multi-tenant (tenantId sur chaque modele)           │
+│  - JSONB for flexible config                           │
+│  - 12 indexes composes sur 6 modeles                   │
 └────────────────────────────────────────────────────────┘
+
+Services externes:
+  - Resend (emails transactionnels)
+  - Sentry (error tracking + performance)
+  - UploadThing (file storage)
+  - GitHub Actions (CI/CD)
 ```
 
 ---
@@ -765,233 +780,101 @@ npx prisma studio
 
 ```
 mindsp/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── deploy.yml
+├── .github/workflows/
+│   └── ci.yml                              # GitHub Actions CI (tsc + build)
 │
 ├── prisma/
-│   ├── schema.prisma
-│   ├── migrations/
-│   └── seed/
-│       ├── index.ts
-│       ├── tenants.ts
-│       ├── users.ts
-│       ├── fmpas.ts
-│       └── ...
+│   ├── schema.prisma                       # 59 modeles, 49 enums
+│   ├── migrations/                         # Migrations SQL
+│   └── seed-demo.ts                        # Script creation compte demo
 │
 ├── public/
-│   ├── manifest.json
-│   ├── sw.js
-│   └── icons/
-│       ├── icon-192x192.png
-│       └── icon-512x512.png
+│   ├── manifest.json                       # PWA manifest
+│   ├── sw.js                               # Service worker
+│   ├── favicon.ico, logo.png, logo-banner.png
+│   └── icons/                              # App icons PWA
+│
+├── sentry.client.config.ts                 # Sentry client
+├── sentry.server.config.ts                 # Sentry server
+├── sentry.edge.config.ts                   # Sentry edge
 │
 ├── src/
 │   ├── app/
-│   │   ├── (auth)/
-│   │   │   ├── layout.tsx
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx
-│   │   │   ├── register/
-│   │   │   │   └── page.tsx
-│   │   │   └── forgot-password/
-│   │   │       └── page.tsx
-│   │   │
-│   │   ├── (dashboard)/
-│   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx                    # Dashboard home
-│   │   │   │
-│   │   │   ├── fmpa/
-│   │   │   │   ├── page.tsx                # Liste FMPA
-│   │   │   │   ├── create/
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── [id]/
-│   │   │   │       ├── page.tsx            # Détail
-│   │   │   │       └── edit/
-│   │   │   │           └── page.tsx
-│   │   │   │
-│   │   │   ├── messages/
-│   │   │   │   ├── page.tsx                # Liste conversations
-│   │   │   │   └── [conversationId]/
-│   │   │   │       └── page.tsx            # Chat
-│   │   │   │
-│   │   │   ├── formations/
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── create/
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx
-│   │   │   │
-│   │   │   ├── agenda/
-│   │   │   │   └── page.tsx
-│   │   │   │
-│   │   │   ├── personnel/
-│   │   │   │   └── page.tsx
-│   │   │   │
-│   │   │   └── settings/
-│   │   │       └── page.tsx
-│   │   │
-│   │   ├── api/
-│   │   │   ├── auth/
-│   │   │   │   └── [...nextauth]/
-│   │   │   │       └── route.ts
-│   │   │   │
-│   │   │   ├── fmpa/
-│   │   │   │   ├── route.ts                # GET/POST
-│   │   │   │   └── [id]/
-│   │   │   │       ├── route.ts            # GET/PUT/DELETE
-│   │   │   │       ├── participants/
-│   │   │   │       │   └── route.ts
-│   │   │   │       └── export/
-│   │   │   │           └── route.ts        # PDF export
-│   │   │   │
-│   │   │   ├── messages/
-│   │   │   │   ├── route.ts
-│   │   │   │   └── [id]/
-│   │   │   │       └── route.ts
-│   │   │   │
-│   │   │   ├── conversations/
-│   │   │   │   ├── route.ts
-│   │   │   │   └── [id]/
-│   │   │   │       ├── route.ts
-│   │   │   │       └── messages/
-│   │   │   │           └── route.ts
-│   │   │   │
-│   │   │   ├── formations/
-│   │   │   │   ├── route.ts
-│   │   │   │   └── [id]/
-│   │   │   │       ├── route.ts
-│   │   │   │       └── registrations/
-│   │   │   │           └── route.ts
-│   │   │   │
-│   │   │   ├── events/
-│   │   │   │   ├── route.ts
-│   │   │   │   └── [id]/
-│   │   │   │       └── route.ts
-│   │   │   │
-│   │   │   ├── users/
-│   │   │   │   ├── route.ts
-│   │   │   │   └── [id]/
-│   │   │   │       └── route.ts
-│   │   │   │
-│   │   │   └── notifications/
-│   │   │       ├── route.ts
-│   │   │       └── [id]/
-│   │   │           └── mark-read/
-│   │   │               └── route.ts
-│   │   │
-│   │   ├── layout.tsx                      # Root layout
-│   │   ├── globals.css
-│   │   └── providers.tsx
-│   │
-│   ├── components/
-│   │   ├── fmpa/
-│   │   │   ├── FmpaCard.tsx
-│   │   │   ├── FmpaList.tsx
-│   │   │   ├── FmpaForm.tsx
-│   │   │   ├── FmpaDetailView.tsx
-│   │   │   ├── ParticipantsList.tsx
-│   │   │   └── QrCodeScanner.tsx
-│   │   │
-│   │   ├── messages/
-│   │   │   ├── ConversationList.tsx
-│   │   │   ├── MessageList.tsx
-│   │   │   ├── MessageInput.tsx
-│   │   │   ├── MessageBubble.tsx
-│   │   │   └── TypingIndicator.tsx
-│   │   │
-│   │   ├── formations/
-│   │   │   ├── FormationCard.tsx
-│   │   │   ├── FormationList.tsx
-│   │   │   └── FormationForm.tsx
-│   │   │
-│   │   ├── agenda/
-│   │   │   ├── Calendar.tsx
-│   │   │   ├── EventCard.tsx
-│   │   │   └── EventForm.tsx
-│   │   │
-│   │   ├── layout/
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── Header.tsx
-│   │   │   ├── MobileNav.tsx
-│   │   │   └── Footer.tsx
+│   │   ├── layout.tsx                      # Root layout (Sentry, CookieConsent, SW)
+│   │   ├── error.tsx                       # Global error boundary (Sentry)
+│   │   ├── not-found.tsx                   # 404 page
 │   │   │
 │   │   ├── auth/
-│   │   │   ├── LoginForm.tsx
-│   │   │   ├── RegisterForm.tsx
-│   │   │   └── ForgotPasswordForm.tsx
+│   │   │   ├── login/page.tsx              # Login (tenant select, credentials dev only)
+│   │   │   ├── register/page.tsx           # Inscription
+│   │   │   └── error/page.tsx
 │   │   │
-│   │   └── ui/                             # Shadcn components
-│   │       ├── button.tsx
-│   │       ├── input.tsx
-│   │       ├── card.tsx
-│   │       ├── dialog.tsx
-│   │       ├── dropdown-menu.tsx
-│   │       ├── toast.tsx
-│   │       └── ...
+│   │   ├── (dashboard)/
+│   │   │   ├── layout.tsx                  # Sidebar + Header + OnboardingWizard
+│   │   │   ├── page.tsx                    # Dashboard home
+│   │   │   ├── error.tsx                   # Dashboard error boundary
+│   │   │   ├── fmpa/                       # FMPA pages (liste, detail, calendrier, stats)
+│   │   │   ├── formations/                 # Formations (liste, calendrier, nouvelle)
+│   │   │   ├── messages/                   # Conversations + chat
+│   │   │   ├── chat/                       # Chat temps reel (canaux)
+│   │   │   ├── mailbox/                    # Email interne
+│   │   │   ├── agenda/                     # Calendrier global
+│   │   │   ├── personnel/                  # Fiches personnel + [id] detail
+│   │   │   ├── tta/                        # TTA saisie, validation, export
+│   │   │   ├── portails/                   # Portails communication
+│   │   │   ├── notifications/              # Centre notifications
+│   │   │   ├── search/                     # Recherche globale
+│   │   │   ├── messaging/                  # Listes diffusion
+│   │   │   ├── settings/                   # Parametres notifications
+│   │   │   └── showcase/                   # Demo composants
+│   │   │
+│   │   └── api/                            # 71 API routes (voir README.md)
+│   │
+│   ├── components/
+│   │   ├── ui/                             # 30+ composants Shadcn/ui
+│   │   ├── layout/                         # Sidebar, Header
+│   │   ├── fmpa/                           # FMPATable, FMPACalendar, FMPAStatistics
+│   │   ├── chat/                           # ChannelList, MessageList, CreateChannelDialog
+│   │   ├── mailbox/                        # MailboxLayout, MessageList, ComposeForm
+│   │   ├── formations/                     # FormationsCalendar
+│   │   ├── personnel/                      # CareerTimeline, AlertsDashboard
+│   │   ├── notifications/                  # NotificationBell
+│   │   ├── providers/                      # SessionProvider, ThemeProvider, NavigationLoader
+│   │   ├── CookieConsent.tsx               # Bandeau RGPD
+│   │   └── OnboardingWizard.tsx            # Wizard 3 etapes post-inscription
 │   │
 │   ├── lib/
-│   │   ├── prisma.ts                       # Prisma client singleton
-│   │   ├── auth.ts                         # NextAuth config
-│   │   ├── redis.ts                        # Redis client
-│   │   ├── queue.ts                        # BullMQ setup
-│   │   ├── socket.ts                       # Socket.IO client utils
-│   │   ├── utils.ts                        # Utils généraux
-│   │   │
-│   │   ├── validations/
-│   │   │   ├── fmpa.ts                     # Zod schemas FMPA
-│   │   │   ├── user.ts
-│   │   │   ├── message.ts
-│   │   │   └── ...
-│   │   │
-│   │   └── services/                       # Business logic
-│   │       ├── fmpa.service.ts
-│   │       ├── message.service.ts
-│   │       ├── notification.service.ts
-│   │       ├── email.service.ts
-│   │       └── ...
+│   │   ├── prisma.ts                       # Client Prisma + slow query middleware
+│   │   ├── auth.ts                         # NextAuth config (satisfies NextAuthConfig)
+│   │   ├── auth-config.ts                  # Export auth(), signIn(), signOut()
+│   │   ├── cache.ts                        # CacheService Redis (getOrSet, invalidation)
+│   │   ├── rate-limit.ts                   # 4 rate limiters (lazy Proxy)
+│   │   ├── email.ts                        # Resend (welcome, reset, FMPA templates)
+│   │   ├── notification-service.ts         # NotificationService (create, push, bulk)
+│   │   ├── socket-client.ts                # Socket.IO client (optionnel)
+│   │   ├── supabase.ts                     # Supabase client (lazy Proxy)
+│   │   ├── fetcher.ts                      # SWR fetcher reutilisable
+│   │   ├── icons.ts                        # Registre emojis Unicode
+│   │   └── utils.ts
 │   │
 │   ├── hooks/
-│   │   ├── use-auth.ts
-│   │   ├── use-tenant.ts
-│   │   ├── use-socket.ts
-│   │   ├── use-notifications.ts
-│   │   └── use-offline.ts
+│   │   ├── use-notifications.ts            # SWR + mutations optimistes
+│   │   └── use-toast.ts
 │   │
-│   ├── stores/
-│   │   ├── auth.store.ts                   # Zustand
-│   │   ├── messages.store.ts
-│   │   └── offline.store.ts
+│   ├── contexts/
+│   │   └── SidebarContext.tsx
 │   │
 │   ├── types/
-│   │   ├── index.ts
-│   │   ├── fmpa.ts
-│   │   ├── message.ts
-│   │   ├── auth.ts
+│   │   ├── chat.ts, notification.ts, next-auth.d.ts
 │   │   └── ...
 │   │
-│   └── middleware.ts                       # Next.js middleware
+│   └── middleware.ts                       # Auth, tenant, rate limiting, headers
 │
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-│
-├── docs/
-│   ├── architecture.md
-│   ├── api.md
-│   └── deployment.md
-│
-├── .env.example
-├── .env.local
-├── .eslintrc.json
-├── .prettierrc
-├── next.config.js
+├── next.config.js                          # withSentryConfig, CSP, optimizePackageImports
 ├── tailwind.config.ts
 ├── tsconfig.json
-├── package.json
-└── README.md
+├── vercel.json                             # Region cdg1, build command
+└── package.json                            # 56 deps, 20 devDeps
 ```
 
 ---
@@ -2019,11 +1902,18 @@ module.exports = {
 
 ---
 
-## 8. WebSocket & Temps Réel
+## 8. Temps Réel
 
-### 8.1 Socket.IO Server
+### 8.1 Supabase Realtime (principal)
 
-**Fichier :** `src/lib/socket-server.ts`
+Le projet utilise principalement **Supabase Realtime** pour le temps réel (chat, présence, notifications).
+Un serveur **Socket.IO** optionnel est également disponible pour des cas d'usage avancés.
+
+**Configuration :** `src/lib/supabase.ts` (lazy Proxy)
+
+### 8.2 Socket.IO Server (optionnel)
+
+**Fichier :** `src/lib/socket-client.ts`
 
 ```typescript
 import { Server as HTTPServer } from "http";
@@ -2630,41 +2520,44 @@ export async function seedFmpas(
 **Fichier :** `.env.example`
 
 ```bash
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/mindsp"
+# Database (Supabase PostgreSQL)
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."  # Connexion directe pour migrations
 
-# NextAuth
+# Supabase (Realtime + Storage)
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+
+# NextAuth v5
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key-min-32-chars"
+NEXTAUTH_SECRET="..."  # openssl rand -base64 32
 
-# JWT
-JWT_SECRET="your-jwt-secret-key"
-JWT_REFRESH_SECRET="your-refresh-secret-key"
+# Redis (Upstash)
+UPSTASH_REDIS_REST_URL="..."
+UPSTASH_REDIS_REST_TOKEN="..."
 
-# Redis (Upstash ou local)
-REDIS_URL="redis://localhost:6379"
-UPSTASH_REDIS_REST_URL=""
-UPSTASH_REDIS_REST_TOKEN=""
+# Email (Resend)
+RESEND_API_KEY="..."
+EMAIL_FROM="MindSP <noreply@mindsp.fr>"
 
-# Socket.IO
-NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
+# File Upload (UploadThing)
+UPLOADTHING_SECRET="..."
+UPLOADTHING_APP_ID="..."
 
-# File Upload (S3 compatible)
-S3_ENDPOINT=""
-S3_BUCKET=""
-S3_ACCESS_KEY=""
-S3_SECRET_KEY=""
+# Web Push (VAPID)
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="..."
+VAPID_PRIVATE_KEY="..."
 
-# Email (SendGrid, Resend, etc.)
-EMAIL_FROM="noreply@mindsp.fr"
-SENDGRID_API_KEY=""
+# Monitoring (Sentry)
+NEXT_PUBLIC_SENTRY_DSN="..."
+SENTRY_ORG="..."
+SENTRY_PROJECT="..."
 
-# Sentry (optional)
-SENTRY_DSN=""
+# Socket.IO (optionnel, serveur dedie)
+NEXT_PUBLIC_SOCKET_URL="http://localhost:3001"
 
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NODE_ENV="development"
+# CORS
+ALLOWED_ORIGINS="localhost:3000"
 ```
 
 ### 11.3 TypeScript Configuration
