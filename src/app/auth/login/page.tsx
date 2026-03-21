@@ -28,6 +28,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [tenantSlug, setTenantSlug] = useState("sdis13");
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -49,9 +50,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
+        const errorMessages: Record<string, string> = {
+          CredentialsSignin: "Email ou mot de passe incorrect",
+          Configuration: "Erreur de configuration du serveur",
+        };
         toast({
           title: "Erreur de connexion",
-          description: result.error,
+          description: errorMessages[result.error] || "Email ou mot de passe incorrect",
           variant: "destructive",
         });
       } else {
@@ -135,14 +140,25 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  required
+                  disabled={isLoading}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
