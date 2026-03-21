@@ -1,30 +1,12 @@
-# 📋 Spécifications Techniques - MindSP
+# Specifications Techniques - MindSP
 
-**Version :** 2.1
-**Date :** 19 Mars 2026
-**Projet :** Solution SaaS de gestion SDIS
-
----
-
-## 📚 Table des Matières
-
-1. [Architecture Générale](#1-architecture-générale)
-2. [Schéma de Base de Données](#2-schéma-de-base-de-données)
-3. [Structure de Fichiers](#3-structure-de-fichiers)
-4. [Spécifications API](#4-spécifications-api)
-5. [Composants UI](#5-composants-ui)
-6. [Authentification & Sécurité](#6-authentification--sécurité)
-7. [Multi-Tenancy](#7-multi-tenancy)
-8. [WebSocket & Temps Réel](#8-websocket--temps-réel)
-9. [PWA & Offline](#9-pwa--offline)
-10. [Seed Data](#10-seed-data)
-11. [Configuration Technique](#11-configuration-technique)
-12. [User Stories](#12-user-stories)
-13. [Workflows Métier](#13-workflows-métier)
+**Version :** 3.0
+**Date :** 21 Mars 2026
+**Projet :** Solution SaaS multi-tenant de gestion SDIS
 
 ---
 
-## 1. Architecture Générale
+## 1. Architecture Generale
 
 ### 1.1 Stack Technique
 
@@ -34,2751 +16,571 @@ Frontend:
   - Language: TypeScript 5.6
   - UI Library: React 18.3
   - Styling: TailwindCSS 3.4 + Shadcn/ui + Radix UI
-  - State Management: Zustand + SWR 2.4 (cache client)
-  - Forms: React Hook Form + Zod
-  - HTTP Client: Fetch API native + SWR
-  - Temps reel: Supabase Realtime
-  - Animations: Framer Motion
-  - Icons: Lucide React
+  - State: SWR 2.4 (cache client, deduplication 30s, mutations optimistes)
+  - Forms: React Hook Form + Zod 3.25
+  - Temps reel: Supabase Realtime (WebSocket)
+  - Animations: Framer Motion 12
+  - Icons: Lucide React + Emojis Unicode
   - PDF: jsPDF + html2canvas
 
 Backend:
   - Runtime: Node.js 20+ LTS
-  - Framework: Next.js 14 API Routes (71 routes)
-  - ORM: Prisma 5.20 (59 modeles, 49 enums)
+  - Framework: Next.js 14 API Routes (72 routes)
+  - ORM: Prisma 5.22 (59 modeles, 49 enums)
   - Database: PostgreSQL (Supabase)
   - Cache: Upstash Redis (TTL 5-60 min, invalidation cascade)
-  - Auth: NextAuth.js v5 (JWT, multi-tenant)
-  - Queue: BullMQ (optionnel)
+  - Auth: NextAuth.js v5 beta.22 (JWT, multi-tenant)
   - Rate Limiting: Upstash Ratelimit (4 niveaux)
   - Email: Resend
-  - Monitoring: Sentry (error tracking)
+  - Monitoring: Sentry 10.45 (error tracking + replays)
+  - Search: PostgreSQL pg_trgm (10 index GIN trigram)
 
 Infrastructure:
-  - Hosting: Vercel (region cdg1 - Paris)
+  - Hosting App: Vercel (region cdg1 - Paris)
+  - Hosting Socket: Render (Web Service Node.js)
   - Database: PostgreSQL (Supabase)
-  - Cache: Upstash Redis
+  - Cache/Rate Limit: Upstash Redis (Frankfurt)
   - Storage: UploadThing
   - CI/CD: GitHub Actions
-
+  - Monitoring: Sentry (region EU - Frankfurt)
 ```
 
-### 1.2 Architecture Système
+### 1.2 Architecture Systeme
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Client Browser/PWA                    │
-│  Next.js 14 (React 18) + TailwindCSS + SWR + Sentry   │
-└────────────┬───────────────────────────┬────────────────┘
-             │                           │
-             │ HTTPS/REST               │ Supabase Realtime
-             │                           │
-┌────────────▼───────────────────────────▼────────────────┐
-│              Next.js App Router (Vercel - cdg1)         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │  71 API      │  │  Middleware  │  │  Supabase    │ │
-│  │  Routes      │  │  - Auth     │  │  Realtime    │ │
-│  │              │  │  - Tenant   │  │  (Chat, etc) │ │
-│  │              │  │  - Rate Lim │  │              │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────────────┘ │
-└─────────┼──────────────────┼────────────────────────────┘
-          │                  │
-┌─────────▼──────────┐  ┌───▼────────────────────────────┐
-│  Prisma 5          │  │   Upstash Redis                │
-│  59 modeles        │  │   - Cache (TTL 5-60 min)       │
-│  Slow query >500ms │  │   - Rate Limiting (4 niveaux)  │
-└─────────┬──────────┘  │   - Session                    │
-          │             └────────────────────────────────┘
-┌─────────▼──────────────────────────────────────────────┐
-│              PostgreSQL (Supabase)                      │
-│  - Multi-tenant (tenantId sur chaque modele)           │
-│  - JSONB for flexible config                           │
-│  - 12 indexes composes sur 6 modeles                   │
-└────────────────────────────────────────────────────────┘
++-----------------------------------------------------------+
+|                    Client Browser / PWA                     |
+|  Next.js 14 (React 18) + TailwindCSS + SWR + Sentry      |
++------------+----------------------------+-----------------+
+             |                            |
+             | HTTPS/REST                | Supabase Realtime
+             |                            |
++------------v----------------------------v-----------------+
+|              Next.js App Router (Vercel - cdg1)            |
+|  +----------------+  +---------------+  +---------------+ |
+|  | 72 API Routes  |  | Middleware    |  | Supabase      | |
+|  | (force-dynamic)|  | - Auth (JWT) |  | Realtime      | |
+|  |                |  | - Tenant     |  | (Chat, notif) | |
+|  |                |  | - Rate Limit |  |               | |
+|  +-------+--------+  +-------+-------+  +---------------+ |
++-----------+-------------------+----------------------------+
+            |                   |
++-----------v----------+  +----v---------------------------+
+|  Prisma 5.22         |  |   Upstash Redis (Frankfurt)    |
+|  59 modeles          |  |   - Cache 9 endpoints (5-60m)  |
+|  Slow query >500ms   |  |   - Rate Limiting (4 niveaux)  |
++-----------+----------+  +--------------------------------+
+            |
++-----------v--------------------------------------------------+
+|              PostgreSQL (Supabase)                             |
+|  - Multi-tenant (tenantId sur chaque modele)                  |
+|  - 12 index composes B-tree sur 6 modeles                     |
+|  - 10 index GIN pg_trgm pour recherche ILIKE                  |
+|  - JSONB pour config flexible                                 |
++---------------------------------------------------------------+
 
 Services externes:
   - Resend (emails transactionnels)
-  - Sentry (error tracking + performance)
+  - Sentry (error tracking + session replay)
   - UploadThing (file storage)
-  - GitHub Actions (CI/CD)
+  - Render (Socket.IO server)
 ```
 
 ---
 
-## 2. Schéma de Base de Données
+## 2. Base de Donnees
 
-### 2.1 Prisma Schema Complet
+### 2.1 Vue d'ensemble
 
-**Fichier :** `prisma/schema.prisma`
+- **59 modeles** Prisma, **49 enums**
+- Schema complet : `prisma/schema.prisma`
+- Multi-tenant : chaque modele porte un `tenantId`
+- Migrations : `prisma/migrations/`
 
-```prisma
-generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "fullTextIndex"]
-}
+### 2.2 Modeles par module
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+| Module | Modeles |
+|--------|---------|
+| **Core** | Tenant, User, UserSettings, UserPresence, RefreshToken, AuditLog, PushSubscription |
+| **FMPA** | FMPA, Participation, FMPAMealRegistration |
+| **Formations** | Formation, FormationRegistration, TrainingRegistration |
+| **Personnel** | PersonnelFile, Qualification, MedicalStatus, Equipment, GradeHistory, Medal, PersonnelDocument |
+| **Chat** | ChatChannel, ChatChannelMember, ChatMessage, ChatAttachment, ChatReaction, ChatMention |
+| **Messaging** | Message, MessageRead, Conversation, ConversationMember, MessagePoll, PollOption, PollResponse, MessageEventInvitation, InvitationResponse, MessageTrainingProposal, MailingList, MailingListMember, UserFavorite |
+| **Mail** | MailMessage, MailRecipient, MailAttachment, MailLabel |
+| **Calendrier** | CalendarEvent, EventParticipant, AgendaEvent, AgendaEventParticipant, AgendaEventReminder, Availability, Event, EventParticipation |
+| **Contenu** | NewsArticle, Portal, PortalPage, PortalDocument, Document, Notification |
+| **TTA** | TTAEntry, TTAExport |
 
-// ================================
-// CORE MODELS
-// ================================
+### 2.3 Enums principales
 
-model Tenant {
-  id          String   @id @default(uuid())
-  slug        String   @unique // sdis13, sdis06
-  name        String
-  domain      String   @unique // sdis13.mindsp.fr
-  status      TenantStatus @default(ACTIVE)
-  
-  // Configuration
-  config      Json?    // Settings flexibles
-  logo        String?
-  primaryColor String? @default("#1e40af")
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  users       User[]
-  fmpas       FMPA[]
-  messages    Message[]
-  conversations Conversation[]
-  formations  Formation[]
-  events      Event[]
-  documents   Document[]
-  notifications Notification[]
-  
-  @@index([slug])
-  @@index([domain])
-  @@map("tenants")
-}
+| Enum | Valeurs |
+|------|---------|
+| UserRole | SUPER_ADMIN, ADMIN, MANAGER, USER |
+| TenantStatus | ACTIVE, SUSPENDED, TRIAL, CANCELLED |
+| FMPAType | FORMATION, MANOEUVRE, EXERCICE, PRESENCE_ACTIVE, CEREMONIE |
+| FMPAStatus | DRAFT, PUBLISHED, IN_PROGRESS, COMPLETED, CANCELLED |
+| FormationCategory | INCENDIE, SECOURS, TECHNIQUE, MANAGEMENT, REGLEMENTAIRE |
+| ParticipationStatus | REGISTERED, CONFIRMED, PRESENT, ABSENT, EXCUSED |
+| CalendarEventType | FMPA, FORMATION, MEETING, INTERVENTION, GARDE |
+| ActivityType | FMPA, INTERVENTION, FORMATION, GARDE, ASTREINTE |
+| NotificationType | 15+ types (CHAT_MESSAGE, MAIL_RECEIVED, FMPA_REMINDER, etc.) |
+| QualificationType | FORMATION, SPECIALITE, PERMIS, HABILITATION, AUTRE |
+| AptitudeStatus | APT, INAPT_TEMP, INAPT_DEF, RESTRICTIONS |
 
-enum TenantStatus {
-  ACTIVE
-  SUSPENDED
-  TRIAL
-  CANCELLED
-}
+### 2.4 Index
 
-model User {
-  id            String    @id @default(uuid())
-  tenantId      String
-  
-  // Authentication
-  email         String
-  passwordHash  String
-  emailVerified DateTime?
-  
-  // Profile
-  firstName     String
-  lastName      String
-  phone         String?
-  avatar        String?
-  badge         String?    // Matricule
-  
-  // Role & Permissions
-  role          UserRole   @default(USER)
-  permissions   String[]   // Array of permission codes
-  
-  // Status
-  status        UserStatus @default(ACTIVE)
-  lastLoginAt   DateTime?
-  
-  // Refresh Tokens
-  refreshTokens RefreshToken[]
-  
-  // Metadata
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  // FMPA
-  fmpasCreated  FMPA[]    @relation("FMPACreator")
-  participations Participation[]
-  
-  // Messaging
-  sentMessages  Message[] @relation("MessageSender")
-  conversationMembers ConversationMember[]
-  
-  // Formations
-  formationsCreated Formation[] @relation("FormationCreator")
-  formationRegistrations FormationRegistration[]
-  
-  // Events
-  eventsCreated Event[]   @relation("EventCreator")
-  eventParticipations EventParticipation[]
-  
-  // Notifications
-  notifications Notification[]
-  
-  @@unique([tenantId, email])
-  @@index([tenantId])
-  @@index([email])
-  @@index([status])
-  @@map("users")
-}
-
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  USER
-}
-
-enum UserStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([token])
-  @@map("refresh_tokens")
-}
-
-// ================================
-// MODULE FMPA
-// ================================
-
-model FMPA {
-  id          String   @id @default(uuid())
-  tenantId    String
-  
-  // Content
-  type        FMPAType
-  title       String
-  description String?  @db.Text
-  
-  // Schedule
-  startDate   DateTime
-  endDate     DateTime
-  location    String
-  
-  // Configuration
-  maxParticipants Int?
-  requiresApproval Boolean @default(false)
-  
-  // Status
-  status      FMPAStatus @default(DRAFT)
-  
-  // QR Code
-  qrCode      String?  @unique
-  
-  // Creator
-  createdById String
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdBy   User     @relation("FMPACreator", fields: [createdById], references: [id])
-  participations Participation[]
-  
-  @@index([tenantId])
-  @@index([status])
-  @@index([startDate])
-  @@index([type])
-  @@map("fmpas")
-}
-
-enum FMPAType {
-  FORMATION
-  MANOEUVRE
-  PRESENCE_ACTIVE
-}
-
-enum FMPAStatus {
-  DRAFT
-  PUBLISHED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-model Participation {
-  id          String   @id @default(uuid())
-  fmpaId      String
-  userId      String
-  
-  // Status
-  status      ParticipationStatus @default(REGISTERED)
-  
-  // Timestamps
-  registeredAt DateTime @default(now())
-  confirmedAt  DateTime?
-  checkInTime  DateTime?
-  checkOutTime DateTime?
-  
-  // Notes
-  notes       String?  @db.Text
-  
-  // Relations
-  fmpa        FMPA     @relation(fields: [fmpaId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([fmpaId, userId])
-  @@index([fmpaId])
-  @@index([userId])
-  @@index([status])
-  @@map("participations")
-}
-
-enum ParticipationStatus {
-  REGISTERED
-  CONFIRMED
-  PRESENT
-  ABSENT
-  CANCELLED
-}
-
-// ================================
-// MODULE MESSAGING
-// ================================
-
-model Conversation {
-  id          String   @id @default(uuid())
-  tenantId    String
-  
-  // Type
-  type        ConversationType @default(DIRECT)
-  name        String?  // For group conversations
-  avatar      String?
-  
-  // Metadata
-  lastMessageAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  members     ConversationMember[]
-  messages    Message[]
-  
-  @@index([tenantId])
-  @@index([type])
-  @@index([lastMessageAt])
-  @@map("conversations")
-}
-
-enum ConversationType {
-  DIRECT
-  GROUP
-  CHANNEL
-}
-
-model ConversationMember {
-  id             String   @id @default(uuid())
-  conversationId String
-  userId         String
-  
-  // Status
-  role           MemberRole @default(MEMBER)
-  joinedAt       DateTime @default(now())
-  lastReadAt     DateTime?
-  
-  // Notifications
-  notificationsEnabled Boolean @default(true)
-  
-  // Relations
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([conversationId, userId])
-  @@index([conversationId])
-  @@index([userId])
-  @@map("conversation_members")
-}
-
-enum MemberRole {
-  OWNER
-  ADMIN
-  MEMBER
-}
-
-model Message {
-  id             String   @id @default(uuid())
-  conversationId String
-  senderId       String
-  tenantId       String
-  
-  // Content
-  content        String   @db.Text
-  type           MessageType @default(TEXT)
-  
-  // Attachments
-  attachments    Json?    // Array of file metadata
-  
-  // Status
-  status         MessageStatus @default(SENT)
-  editedAt       DateTime?
-  deletedAt      DateTime?
-  
-  // Metadata
-  createdAt      DateTime @default(now())
-  
-  // Relations
-  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User     @relation("MessageSender", fields: [senderId], references: [id])
-  reads          MessageRead[]
-  
-  @@index([conversationId])
-  @@index([senderId])
-  @@index([tenantId])
-  @@index([createdAt])
-  @@map("messages")
-}
-
-enum MessageType {
-  TEXT
-  IMAGE
-  FILE
-  SYSTEM
-}
-
-enum MessageStatus {
-  SENT
-  DELIVERED
-  READ
-  DELETED
-}
-
-model MessageRead {
-  id        String   @id @default(uuid())
-  messageId String
-  userId    String
-  readAt    DateTime @default(now())
-  
-  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
-  @@unique([messageId, userId])
-  @@index([messageId])
-  @@map("message_reads")
-}
-
-// ================================
-// MODULE FORMATIONS
-// ================================
-
-model Formation {
-  id          String   @id @default(uuid())
-  tenantId    String
-  
-  // Content
-  code        String   // FOR-2025-001
-  title       String
-  description String?  @db.Text
-  
-  // Schedule
-  startDate   DateTime
-  endDate     DateTime
-  location    String
-  
-  // Configuration
-  maxParticipants Int?
-  minParticipants Int?
-  price       Float?   @default(0)
-  
-  // Instructor
-  instructor  String?
-  
-  // Status
-  status      FormationStatus @default(DRAFT)
-  
-  // Creator
-  createdById String
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdBy   User     @relation("FormationCreator", fields: [createdById], references: [id])
-  registrations FormationRegistration[]
-  
-  @@unique([tenantId, code])
-  @@index([tenantId])
-  @@index([status])
-  @@index([startDate])
-  @@map("formations")
-}
-
-enum FormationStatus {
-  DRAFT
-  OPEN
-  FULL
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-model FormationRegistration {
-  id          String   @id @default(uuid())
-  formationId String
-  userId      String
-  
-  // Status
-  status      RegistrationStatus @default(PENDING)
-  
-  // Validation
-  validatedBy String?
-  validatedAt DateTime?
-  rejectionReason String?
-  
-  // Timestamps
-  registeredAt DateTime @default(now())
-  
-  // Relations
-  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([formationId, userId])
-  @@index([formationId])
-  @@index([userId])
-  @@index([status])
-  @@map("formation_registrations")
-}
-
-enum RegistrationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-  COMPLETED
-}
-
-// ================================
-// MODULE AGENDA / EVENTS
-// ================================
-
-model Event {
-  id          String   @id @default(uuid())
-  tenantId    String
-  
-  // Content
-  title       String
-  description String?  @db.Text
-  
-  // Schedule
-  startDate   DateTime
-  endDate     DateTime
-  allDay      Boolean  @default(false)
-  location    String?
-  
-  // Type
-  type        EventType @default(OTHER)
-  color       String?  @default("#3b82f6")
-  
-  // Creator
-  createdById String
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdBy   User     @relation("EventCreator", fields: [createdById], references: [id])
-  participations EventParticipation[]
-  
-  @@index([tenantId])
-  @@index([startDate])
-  @@index([type])
-  @@map("events")
-}
-
-enum EventType {
-  GUARD_DUTY      // Garde
-  TRAINING        // Formation
-  MEETING         // Réunion
-  INTERVENTION    // Intervention
-  OTHER
-}
-
-model EventParticipation {
-  id          String   @id @default(uuid())
-  eventId     String
-  userId      String
-  
-  // Response
-  response    ParticipationResponse @default(NO_RESPONSE)
-  respondedAt DateTime?
-  
-  // Relations
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([eventId, userId])
-  @@index([eventId])
-  @@index([userId])
-  @@map("event_participations")
-}
-
-enum ParticipationResponse {
-  NO_RESPONSE
-  ACCEPTED
-  DECLINED
-  MAYBE
-}
-
-// ================================
-// MODULE DOCUMENTS
-// ================================
-
-model Document {
-  id          String   @id @default(uuid())
-  tenantId    String
-  
-  // Content
-  name        String
-  description String?  @db.Text
-  
-  // File
-  fileUrl     String
-  fileSize    Int      // bytes
-  mimeType    String
-  
-  // Organization
-  category    String?
-  tags        String[]
-  
-  // Access
-  isPublic    Boolean  @default(false)
-  
-  // Uploader
-  uploadedBy  String
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  @@index([tenantId])
-  @@index([category])
-  @@map("documents")
-}
-
-// ================================
-// MODULE NOTIFICATIONS
-// ================================
-
-model Notification {
-  id          String   @id @default(uuid())
-  tenantId    String
-  userId      String
-  
-  // Content
-  type        NotificationType
-  title       String
-  message     String   @db.Text
-  
-  // Link
-  linkUrl     String?
-  
-  // Status
-  read        Boolean  @default(false)
-  readAt      DateTime?
-  
-  // Metadata
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([tenantId])
-  @@index([userId])
-  @@index([read])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-enum NotificationType {
-  FMPA_CREATED
-  FMPA_UPDATED
-  FMPA_CANCELLED
-  FMPA_REMINDER
-  MESSAGE_RECEIVED
-  FORMATION_APPROVED
-  FORMATION_REJECTED
-  EVENT_INVITATION
-  SYSTEM
-}
-
-// ================================
-// AUDIT LOG
-// ================================
-
-model AuditLog {
-  id          String   @id @default(uuid())
-  tenantId    String?
-  userId      String?
-  
-  // Action
-  action      String   // CREATE_FMPA, UPDATE_USER, etc.
-  entity      String   // FMPA, User, etc.
-  entityId    String?
-  
-  // Data
-  changes     Json?    // Before/after
-  metadata    Json?    // IP, user-agent, etc.
-  
-  // Timestamp
-  createdAt   DateTime @default(now())
-  
-  @@index([tenantId])
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-```
-
-### 2.2 Migrations Strategy
-
-**Commandes Prisma :**
-
-```bash
-# Générer migration
-npx prisma migrate dev --name init
-
-# Appliquer migrations (prod)
-npx prisma migrate deploy
-
-# Générer le client
-npx prisma generate
-
-# Visualiser DB
-npx prisma studio
-```
+- **12 index composes B-tree** sur User, FMPA, Participation, Formation, ChatMessage, Notification
+- **10 index GIN pg_trgm** pour recherches `ILIKE %query%` sur User, FMPA, Formation, ChatMessage, MailMessage, NewsArticle, PersonnelFile, ChatChannel, PortalDocument, Qualification
 
 ---
 
 ## 3. Structure de Fichiers
 
-### 3.1 Arborescence Complète
-
 ```
 mindsp/
-├── .github/workflows/
-│   └── ci.yml                              # GitHub Actions CI (tsc + build)
-│
-├── prisma/
-│   ├── schema.prisma                       # 59 modeles, 49 enums
-│   ├── migrations/                         # Migrations SQL
-│   └── seed-demo.ts                        # Script creation compte demo
-│
-├── public/
-│   ├── manifest.json                       # PWA manifest
-│   ├── sw.js                               # Service worker
-│   ├── favicon.ico, logo.png, logo-banner.png
-│   └── icons/                              # App icons PWA
-│
-├── sentry.client.config.ts                 # Sentry client
-├── sentry.server.config.ts                 # Sentry server
-├── sentry.edge.config.ts                   # Sentry edge
-│
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx                      # Root layout (Sentry, CookieConsent, SW)
-│   │   ├── error.tsx                       # Global error boundary (Sentry)
-│   │   ├── not-found.tsx                   # 404 page
-│   │   │
-│   │   ├── auth/
-│   │   │   ├── login/page.tsx              # Login (tenant select, credentials dev only)
-│   │   │   ├── register/page.tsx           # Inscription
-│   │   │   └── error/page.tsx
-│   │   │
-│   │   ├── (dashboard)/
-│   │   │   ├── layout.tsx                  # Sidebar + Header + OnboardingWizard
-│   │   │   ├── page.tsx                    # Dashboard home
-│   │   │   ├── error.tsx                   # Dashboard error boundary
-│   │   │   ├── fmpa/                       # FMPA pages (liste, detail, calendrier, stats)
-│   │   │   ├── formations/                 # Formations (liste, calendrier, nouvelle)
-│   │   │   ├── messages/                   # Conversations + chat
-│   │   │   ├── chat/                       # Chat temps reel (canaux)
-│   │   │   ├── mailbox/                    # Email interne
-│   │   │   ├── agenda/                     # Calendrier global
-│   │   │   ├── personnel/                  # Fiches personnel + [id] detail
-│   │   │   ├── tta/                        # TTA saisie, validation, export
-│   │   │   ├── portails/                   # Portails communication
-│   │   │   ├── notifications/              # Centre notifications
-│   │   │   ├── search/                     # Recherche globale
-│   │   │   ├── messaging/                  # Listes diffusion
-│   │   │   ├── settings/                   # Parametres notifications
-│   │   │   └── showcase/                   # Demo composants
-│   │   │
-│   │   └── api/                            # 71 API routes (voir README.md)
-│   │
-│   ├── components/
-│   │   ├── ui/                             # 30+ composants Shadcn/ui
-│   │   ├── layout/                         # Sidebar, Header
-│   │   ├── fmpa/                           # FMPATable, FMPACalendar, FMPAStatistics
-│   │   ├── chat/                           # ChannelList, MessageList, CreateChannelDialog
-│   │   ├── mailbox/                        # MailboxLayout, MessageList, ComposeForm
-│   │   ├── formations/                     # FormationsCalendar
-│   │   ├── personnel/                      # CareerTimeline, AlertsDashboard
-│   │   ├── notifications/                  # NotificationBell
-│   │   ├── providers/                      # SessionProvider, ThemeProvider, NavigationLoader
-│   │   ├── CookieConsent.tsx               # Bandeau RGPD
-│   │   └── OnboardingWizard.tsx            # Wizard 3 etapes post-inscription
-│   │
-│   ├── lib/
-│   │   ├── prisma.ts                       # Client Prisma + slow query middleware
-│   │   ├── auth.ts                         # NextAuth config (satisfies NextAuthConfig)
-│   │   ├── auth-config.ts                  # Export auth(), signIn(), signOut()
-│   │   ├── cache.ts                        # CacheService Redis (getOrSet, invalidation)
-│   │   ├── rate-limit.ts                   # 4 rate limiters (lazy Proxy)
-│   │   ├── email.ts                        # Resend (welcome, reset, FMPA templates)
-│   │   ├── notification-service.ts         # NotificationService (create, push, bulk)
-│   │   ├── socket-client.ts                # Socket.IO client (optionnel)
-│   │   ├── supabase.ts                     # Supabase client (lazy Proxy)
-│   │   ├── fetcher.ts                      # SWR fetcher reutilisable
-│   │   ├── icons.ts                        # Registre emojis Unicode
-│   │   └── utils.ts
-│   │
-│   ├── hooks/
-│   │   ├── use-notifications.ts            # SWR + mutations optimistes
-│   │   └── use-toast.ts
-│   │
-│   ├── contexts/
-│   │   └── SidebarContext.tsx
-│   │
-│   ├── types/
-│   │   ├── chat.ts, notification.ts, next-auth.d.ts
-│   │   └── ...
-│   │
-│   └── middleware.ts                       # Auth, tenant, rate limiting, headers
-│
-├── next.config.js                          # withSentryConfig, CSP, optimizePackageImports
-├── tailwind.config.ts
-├── tsconfig.json
-├── vercel.json                             # Region cdg1, build command
-└── package.json                            # 56 deps, 20 devDeps
+  prisma/
+    schema.prisma          # 59 modeles, 49 enums
+    migrations/            # 3 migrations
+    seed/                  # Seed data
+    seed-demo-complete.ts  # Seed complet demo sdis06
+  src/
+    app/
+      (dashboard)/         # 40 pages protegees
+        page.tsx           # Dashboard principal
+        fmpa/              # Gestion FMPA (6 pages)
+        formations/        # Formations (5 pages)
+        personnel/         # Fiches personnel (2 pages)
+        chat/              # Chat temps reel
+        mailbox/           # Messagerie interne
+        messages/          # Conversations (3 pages)
+        messaging/         # Listes, sondages (2 pages)
+        agenda/            # Agenda/calendrier (5 pages)
+        actualites/        # News articles
+        tta/               # Tableau temps activite (4 pages)
+        notifications/     # Centre notifications
+        portails/          # Portails d'info
+        documents/         # GED
+        settings/          # Profil + notifications
+        search/            # Recherche globale
+        admin/             # Administration
+      auth/
+        login/             # Connexion (Suspense + searchParams)
+        register/          # Inscription
+        logout/            # Deconnexion auto
+        error/             # Erreur auth
+      api/                 # 72 routes API
+      error.tsx            # Error boundary global
+      not-found.tsx        # Page 404
+      layout.tsx           # Layout racine (Sentry, PWA, theme)
+    components/            # 94 composants
+      layout/              # Header, Sidebar, Footer
+      ui/                  # Shadcn/ui (Button, Card, Badge, etc.)
+      chat/                # ChatLayout, MessageList, ChannelList
+      fmpa/                # FMPATable, FMPACalendar, FMPAStats
+      formations/          # FormationsCalendar, FormationCard
+      personnel/           # CareerTimeline, QualificationsList
+      mailbox/             # MessageList, ComposeDialog
+      notifications/       # NotificationBell
+      theme/               # ThemeToggle, ThemeProvider
+      cookie/              # CookieConsent (RGPD)
+    hooks/                 # 5 hooks custom
+      use-toast.ts
+      use-notifications.ts # SWR + mutations optimistes
+      use-debounce.ts
+    lib/                   # 36 modules
+      prisma.ts            # Client Prisma + slow query middleware
+      auth.ts              # Config NextAuth (callbacks, JWT)
+      auth-config.ts       # Export auth(), signIn, signOut
+      cache.ts             # CacheService Redis (getOrSet, invalidation)
+      rate-limit.ts        # 4 niveaux rate limiting (Proxy lazy)
+      email.ts             # Service email Resend
+      notification-service.ts # NotificationService (create, push, batch)
+      socket-client.ts     # Socket.IO client (optionnel)
+      supabase.ts          # Supabase client (Proxy lazy)
+      icons.ts             # Registre emojis Unicode
+      fetcher.ts           # SWR fetcher
+    contexts/              # SidebarContext
+    types/                 # 6 fichiers types
+  public/
+    logo.png, logo-banner.png, favicon.ico
+    manifest.json          # PWA manifest
+    sw.js                  # Service worker
+    icons/                 # App icons
+  socket-server/
+    server.js              # Serveur Socket.IO (Render)
+  sentry.client.config.ts
+  sentry.server.config.ts
+  sentry.edge.config.ts
+  next.config.js           # withSentryConfig + CSP + optimizePackageImports
+  middleware.ts            # Auth + tenant + rate limiting
 ```
+
+### 3.1 Statistiques du code
+
+| Metrique | Valeur |
+|----------|--------|
+| Fichiers source (ts/tsx) | 278 |
+| Lignes de code | 42 484 |
+| API Routes | 72 |
+| Composants React | 94 |
+| Pages | 46 |
+| Hooks custom | 5 |
+| Modules lib/ | 36 |
+| Types | 6 |
 
 ---
 
-## 4. Spécifications API
-
-### 4.1 Convention REST
-
-**Base URL :** `https://{tenant}.mindsp.fr/api`
-
-**Headers requis :**
-```
-Authorization: Bearer {jwt_token}
-Content-Type: application/json
-```
-
-**Codes de réponse :**
-- `200` OK - Succès
-- `201` Created - Ressource créée
-- `204` No Content - Succès sans contenu
-- `400` Bad Request - Erreur validation
-- `401` Unauthorized - Non authentifié
-- `403` Forbidden - Non autorisé
-- `404` Not Found - Ressource introuvable
-- `409` Conflict - Conflit (ex: email existe)
-- `422` Unprocessable Entity - Erreur métier
-- `429` Too Many Requests - Rate limit
-- `500` Internal Server Error - Erreur serveur
-
-### 4.2 API Auth
-
-#### POST /api/auth/register
-
-**Description :** Créer un compte utilisateur
-
-**Body :**
-```typescript
-{
-  tenantSlug: string;      // "sdis13"
-  email: string;           // "user@example.com"
-  password: string;        // Min 8 chars, 1 maj, 1 min, 1 chiffre
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-```
-
-**Response 201 :**
-```typescript
-{
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-  };
-  accessToken: string;
-  refreshToken: string;
-}
-```
-
-**Erreurs :**
-- `400` : Validation failed
-- `409` : Email already exists
-
-#### POST /api/auth/login
-
-**Body :**
-```typescript
-{
-  email: string;
-  password: string;
-  tenantSlug: string;
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-    tenantId: string;
-  };
-  accessToken: string;
-  refreshToken: string;
-}
-```
-
-#### POST /api/auth/refresh
-
-**Body :**
-```typescript
-{
-  refreshToken: string;
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  accessToken: string;
-  refreshToken: string;
-}
-```
-
-#### POST /api/auth/logout
-
-**Headers :** Authorization required
-
-**Response 204**
-
-### 4.3 API FMPA
-
-#### GET /api/fmpa
-
-**Description :** Liste des FMPA avec filtres
-
-**Query Params :**
-```typescript
-{
-  status?: FMPAStatus;         // DRAFT, PUBLISHED, etc.
-  type?: FMPAType;             // FORMATION, MANOEUVRE, etc.
-  startDate?: string;          // ISO date "2025-01-01"
-  endDate?: string;
-  search?: string;             // Recherche titre/description
-  page?: number;               // Default: 1
-  limit?: number;              // Default: 20, max: 100
-  sortBy?: "startDate" | "createdAt" | "title";
-  sortOrder?: "asc" | "desc";  // Default: desc
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  data: FMPA[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-```
-
-**Type FMPA :**
-```typescript
-{
-  id: string;
-  type: FMPAType;
-  title: string;
-  description: string | null;
-  startDate: string;           // ISO date
-  endDate: string;
-  location: string;
-  maxParticipants: number | null;
-  status: FMPAStatus;
-  qrCode: string | null;
-  createdBy: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  _count: {
-    participations: number;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-#### POST /api/fmpa
-
-**Description :** Créer une FMPA
-
-**Body :**
-```typescript
-{
-  type: FMPAType;              // Required
-  title: string;               // Required, max 200 chars
-  description?: string;
-  startDate: string;           // Required, ISO date
-  endDate: string;             // Required, must be > startDate
-  location: string;            // Required
-  maxParticipants?: number;    // Min: 1
-  requiresApproval?: boolean;  // Default: false
-}
-```
-
-**Validation Zod :**
-```typescript
-const createFmpaSchema = z.object({
-  type: z.enum(['FORMATION', 'MANOEUVRE', 'PRESENCE_ACTIVE']),
-  title: z.string().min(3).max(200),
-  description: z.string().optional(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  location: z.string().min(2),
-  maxParticipants: z.number().int().positive().optional(),
-  requiresApproval: z.boolean().optional(),
-}).refine(data => new Date(data.endDate) > new Date(data.startDate), {
-  message: "End date must be after start date",
-  path: ["endDate"],
-});
-```
-
-**Response 201 :**
-```typescript
-{
-  id: string;
-  // ... all FMPA fields
-}
-```
-
-**Erreurs :**
-- `400` : Validation failed
-- `401` : Not authenticated
-- `403` : Not authorized (requires ADMIN or MANAGER role)
-
-#### GET /api/fmpa/[id]
-
-**Response 200 :**
-```typescript
-{
-  id: string;
-  // ... all FMPA fields
-  participations: {
-    id: string;
-    status: ParticipationStatus;
-    user: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      avatar: string | null;
-    };
-    registeredAt: string;
-    checkInTime: string | null;
-  }[];
-}
-```
-
-**Erreurs :**
-- `404` : FMPA not found
-
-#### PUT /api/fmpa/[id]
-
-**Body :** (tous champs optionnels)
-```typescript
-{
-  type?: FMPAType;
-  title?: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  location?: string;
-  maxParticipants?: number;
-  status?: FMPAStatus;
-}
-```
-
-**Response 200 :** FMPA mis à jour
-
-**Erreurs :**
-- `403` : Not creator or admin
-- `404` : Not found
-- `422` : Cannot modify completed FMPA
-
-#### DELETE /api/fmpa/[id]
-
-**Response 204**
-
-**Erreurs :**
-- `403` : Not creator or admin
-- `404` : Not found
-- `422` : Cannot delete FMPA with participants
-
-#### POST /api/fmpa/[id]/participants
-
-**Description :** S'inscrire à une FMPA
-
-**Body :**
-```typescript
-{
-  userId?: string;  // Optional, pour admin inscrivant quelqu'un d'autre
-}
-```
-
-**Response 201 :**
-```typescript
-{
-  id: string;
-  fmpaId: string;
-  userId: string;
-  status: "REGISTERED";
-  registeredAt: string;
-}
-```
-
-**Erreurs :**
-- `409` : Already registered
-- `422` : FMPA is full
-- `422` : FMPA is not published
-
-#### DELETE /api/fmpa/[id]/participants/[userId]
-
-**Description :** Se désinscrire ou retirer quelqu'un
-
-**Response 204**
-
-#### PUT /api/fmpa/[id]/participants/[participationId]/check-in
-
-**Description :** Pointer l'arrivée (scan QR code)
-
-**Body :**
-```typescript
-{
-  qrCode: string;  // Pour validation
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  id: string;
-  status: "PRESENT";
-  checkInTime: string;
-}
-```
-
-#### GET /api/fmpa/[id]/export
-
-**Description :** Exporter liste émargement PDF
-
-**Response 200 :**
-```
-Content-Type: application/pdf
-Content-Disposition: attachment; filename="emargement-{fmpaId}.pdf"
-```
-
-### 4.4 API Messages
-
-#### GET /api/conversations
-
-**Query Params :**
-```typescript
-{
-  search?: string;
-  limit?: number;
-  page?: number;
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  data: {
-    id: string;
-    type: ConversationType;
-    name: string | null;
-    avatar: string | null;
-    lastMessage: {
-      content: string;
-      createdAt: string;
-      sender: {
-        firstName: string;
-        lastName: string;
-      };
-    } | null;
-    unreadCount: number;
-    members: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      avatar: string | null;
-    }[];
-  }[];
-}
-```
-
-#### POST /api/conversations
-
-**Body :**
-```typescript
-{
-  type: "DIRECT" | "GROUP";
-  memberIds: string[];         // User IDs
-  name?: string;               // Required for GROUP
-}
-```
-
-**Response 201 :** Conversation créée
-
-#### GET /api/conversations/[id]/messages
-
-**Query Params :**
-```typescript
-{
-  before?: string;  // Message ID for pagination
-  limit?: number;   // Default: 50
-}
-```
-
-**Response 200 :**
-```typescript
-{
-  data: {
-    id: string;
-    content: string;
-    type: MessageType;
-    sender: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      avatar: string | null;
-    };
-    createdAt: string;
-    editedAt: string | null;
-    reads: {
-      userId: string;
-      readAt: string;
-    }[];
-  }[];
-  hasMore: boolean;
-}
-```
-
-#### POST /api/conversations/[id]/messages
-
-**Body :**
-```typescript
-{
-  content: string;
-  type?: MessageType;    // Default: TEXT
-  attachments?: {
-    url: string;
-    name: string;
-    size: number;
-    mimeType: string;
-  }[];
-}
-```
-
-**Response 201 :** Message créé
-
-### 4.5 API Formations
-
-#### GET /api/formations
-
-**Query Params :** Similaires à /api/fmpa
-
-#### POST /api/formations
-
-**Body :**
-```typescript
-{
-  code: string;              // FOR-2025-001
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  maxParticipants?: number;
-  minParticipants?: number;
-  price?: number;
-  instructor?: string;
-}
-```
-
-#### POST /api/formations/[id]/registrations
-
-**Body :**
-```typescript
-{
-  userId?: string;  // Pour admin
-}
-```
-
-**Response 201 :**
-```typescript
-{
-  id: string;
-  status: "PENDING";  // Nécessite validation
-  registeredAt: string;
-}
-```
-
-#### PUT /api/formations/[id]/registrations/[registrationId]/validate
-
-**Description :** Valider/refuser une inscription (admin only)
-
-**Body :**
-```typescript
-{
-  action: "APPROVE" | "REJECT";
-  rejectionReason?: string;
-}
-```
-
-### 4.6 API Events (Agenda)
-
-#### GET /api/events
-
-**Query Params :**
-```typescript
-{
-  startDate: string;   // Required
-  endDate: string;     // Required
-  type?: EventType;
-}
-```
-
-#### POST /api/events
-
-**Body :**
-```typescript
-{
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  allDay?: boolean;
-  location?: string;
-  type: EventType;
-  participantIds?: string[];
-}
-```
-
-### 4.7 API Notifications
-
-#### GET /api/notifications
-
-**Query Params :**
-```typescript
-{
-  read?: boolean;      // Filter by read status
-  limit?: number;
-  page?: number;
-}
-```
-
-#### PUT /api/notifications/[id]/mark-read
-
-**Response 200**
-
-#### PUT /api/notifications/mark-all-read
-
-**Response 200**
+## 4. API Routes (72)
+
+### 4.1 Authentification
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| POST | /api/auth/[...nextauth] | NextAuth handlers (login, session, etc.) |
+| POST | /api/auth/register | Inscription utilisateur |
+
+### 4.2 FMPA (12 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/fmpa | Liste / Creer FMPA |
+| GET/PATCH/DELETE | /api/fmpa/[id] | Detail / Modifier / Supprimer |
+| GET | /api/fmpa/[id]/export | Export Excel |
+| POST | /api/fmpa/[id]/meal | Inscription repas |
+| PATCH | /api/fmpa/[id]/participants/[pid]/validate | Valider presence |
+| GET | /api/fmpa/[id]/qrcode | Generer QR Code |
+| POST | /api/fmpa/[id]/register | Inscription participant |
+| GET | /api/fmpa/[id]/stats | Stats par FMPA (groupBy) |
+| GET | /api/fmpa/participations/history | Historique participations |
+| POST | /api/fmpa/reminders | Envoi rappels J-1 |
+| GET | /api/fmpa/statistics | Stats globales FMPA |
+| GET | /api/fmpa/team-stats | Stats equipe (export) |
+
+### 4.3 Formations (5 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/formations | Liste / Creer |
+| GET/PATCH/DELETE | /api/formations/[id] | Detail / Modifier / Supprimer |
+| POST | /api/formations/[id]/register | Inscription |
+| GET | /api/formations/registrations/[id]/certificate | Generer certificat |
+| PATCH | /api/formations/registrations/[id]/validate | Valider inscription |
+
+### 4.4 Personnel (4 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET | /api/personnel/alerts | Alertes qualifications/aptitudes |
+| GET/POST | /api/personnel/files | Liste / Creer fiche |
+| GET/PATCH | /api/personnel/files/[id] | Detail / Modifier |
+| GET/POST | /api/personnel/qualifications | Liste / Creer |
+
+### 4.5 Messagerie (11 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/conversations | Conversations |
+| GET/POST | /api/conversations/[id]/messages | Messages conversation |
+| GET | /api/messaging/directory | Annuaire |
+| GET/POST | /api/messaging/favorites | Favoris |
+| POST | /api/messaging/invitations/[id]/respond | Repondre invitation |
+| GET/POST | /api/messaging/lists | Listes de diffusion |
+| GET/PATCH/DELETE | /api/messaging/lists/[id] | Detail liste |
+| POST/DELETE | /api/messaging/lists/[id]/members | Membres liste |
+| POST/GET | /api/messaging/polls/[id]/vote | Voter / Resultats sondage |
+| POST | /api/messaging/training-proposals/[id]/register | Inscription formation via message |
+
+### 4.6 Chat (2 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/chat/channels | Canaux chat |
+| GET/POST | /api/chat/channels/[id]/messages | Messages canal |
+
+### 4.7 Mail (4 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET | /api/mail/inbox | Boite de reception |
+| GET/POST | /api/mail/messages | Liste / Envoyer mail |
+| GET/PATCH/DELETE | /api/mail/messages/[id] | Detail / Modifier / Supprimer |
+| GET | /api/mail/stats | Stats mail |
+
+### 4.8 Calendrier (7 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/agenda/events | Evenements agenda |
+| GET/PATCH/DELETE | /api/agenda/events/[id] | Detail evenement |
+| POST/DELETE | /api/agenda/events/[id]/participants | Participants |
+| GET/POST | /api/calendar/availability | Disponibilites |
+| GET/POST | /api/calendar/events | Evenements calendrier (cache Redis) |
+| GET/PATCH/DELETE | /api/calendar/events/[id] | Detail (invalide cache) |
+| POST | /api/calendar/events/[id]/respond | Repondre invitation |
+
+### 4.9 Contenu (8 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/news | Actualites (cache Redis) |
+| GET/POST | /api/portals | Portails |
+| GET/PATCH/DELETE | /api/portals/[id] | Detail portail |
+| GET/POST | /api/portal-documents | Documents portail |
+| GET | /api/search | Recherche globale (6 sources, Promise.all, cache) |
+| GET | /api/users | Utilisateurs (pagine, cache Redis) |
+| GET | /api/audit | Journal audit |
+| POST | /api/uploadthing | Upload fichiers |
+
+### 4.10 Notifications (6 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET | /api/notifications | Liste notifications |
+| DELETE | /api/notifications/[id] | Supprimer |
+| PATCH | /api/notifications/[id]/read | Marquer lu |
+| POST | /api/notifications/read-all | Tout marquer lu |
+| GET | /api/notifications/stats | Stats (cache Redis) |
+| POST/DELETE | /api/push/subscribe | Inscription push |
+| POST | /api/push/send | Envoyer push |
+| DELETE | /api/push/unsubscribe | Desinscription push |
+
+### 4.11 TTA (4 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/POST | /api/tta/entries | Entrees TTA |
+| GET/PATCH/DELETE | /api/tta/entries/[id] | Detail entree |
+| PATCH | /api/tta/entries/[id]/validate | Valider entree |
+| GET | /api/tta/export | Export TTA |
+
+### 4.12 Settings & Admin (5 routes)
+
+| Methode | Route | Description |
+|---------|-------|-------------|
+| GET/PATCH | /api/settings/profile | Profil utilisateur |
+| GET/PATCH | /api/settings/notifications | Preferences notifications |
+| GET/PATCH | /api/onboarding | Onboarding status |
+| GET | /api/health | Health check |
+| GET | /api/admin/queues/stats | Stats BullMQ |
+| GET | /api/emargement/[id] | Feuille emargement |
 
 ---
 
-## 5. Composants UI
+## 5. Authentification & Securite
 
-### 5.1 Design System
+### 5.1 NextAuth v5
 
-**Thème :** Basé sur Shadcn/ui + TailwindCSS
-
-**Couleurs :**
 ```typescript
-// tailwind.config.ts
-const colors = {
-  primary: {
-    50: '#eff6ff',
-    500: '#3b82f6',
-    600: '#2563eb',
-    700: '#1d4ed8',
-  },
-  // ...
-};
+// src/lib/auth.ts
+- Provider: Credentials (email + password + tenantSlug)
+- Strategy: JWT (30 jours)
+- Token custom: id, role, tenantId, tenantSlug
+- Session: user.id, user.role, user.tenantId, user.tenantSlug
+- Pages: /auth/login, /auth/logout, /auth/error
 ```
 
-### 5.2 Composants FMPA
+### 5.2 Middleware (src/middleware.ts)
 
-#### FmpaCard
+1. **Rate limiting** sur toutes les routes API (100 req/min)
+2. **Auth check** : redirige vers /auth/login si pas de token JWT
+3. **Tenant extraction** : sous-domaine en production (sdis13.mindsp.fr)
+4. **Headers injection** : x-tenant-id, x-tenant-slug, x-user-id, x-user-role
 
-**Fichier :** `src/components/fmpa/FmpaCard.tsx`
+### 5.3 Rate Limiting (4 niveaux)
 
-**Props :**
-```typescript
-interface FmpaCardProps {
-  fmpa: {
-    id: string;
-    type: FMPAType;
-    title: string;
-    description: string | null;
-    startDate: string;
-    endDate: string;
-    location: string;
-    status: FMPAStatus;
-    _count: {
-      participations: number;
-    };
-    maxParticipants: number | null;
-  };
-  onView?: (id: string) => void;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
-}
-```
+| Limiter | Limite | Usage |
+|---------|--------|-------|
+| apiLimiter | 100 req/min | Toutes les API |
+| authLimiter | 5 req/15 min | Login/register |
+| registerLimiter | 3 req/heure | Creation compte |
+| sensitiveLimiter | 10 req/min | Actions sensibles |
 
-**Comportement :**
-- Affiche badge de type (FORMATION/MANOEUVRE/PA)
-- Badge de status avec couleur appropriée
-- Date en format lisible (ex: "15 Jan 2025")
-- Indicateur participants (12/20)
-- Actions : Voir, Modifier, Supprimer (selon permissions)
-- Hover effect avec shadow
+### 5.4 Headers de securite (next.config.js)
 
-#### FmpaForm
-
-**Props :**
-```typescript
-interface FmpaFormProps {
-  initialData?: Partial<FMPA>;
-  onSubmit: (data: CreateFmpaInput) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
-}
-```
-
-**Champs :**
-1. Type (Select) - FORMATION, MANOEUVRE, PRESENCE_ACTIVE
-2. Titre (Input)
-3. Description (Textarea)
-4. Date début (DatePicker)
-5. Date fin (DatePicker)
-6. Lieu (Input)
-7. Max participants (Number Input, optional)
-8. Nécessite validation (Checkbox)
-
-**Validation :**
-- Temps réel avec Zod
-- Erreurs affichées sous chaque champ
-- Bouton submit désactivé si invalide
-
-#### FmpaList
-
-**Props :**
-```typescript
-interface FmpaListProps {
-  filters?: FmpaFilters;
-  onFilterChange?: (filters: FmpaFilters) => void;
-  view?: 'grid' | 'list';
-}
-```
-
-**Features :**
-- Affichage grid ou liste
-- Filtres : status, type, dates
-- Recherche
-- Pagination
-- Loading skeleton
-- Empty state
-
-#### ParticipantsList
-
-**Props :**
-```typescript
-interface ParticipantsListProps {
-  fmpaId: string;
-  participants: Participation[];
-  canManage: boolean;
-  onCheckIn?: (participationId: string) => Promise<void>;
-  onRemove?: (participationId: string) => Promise<void>;
-}
-```
-
-**Features :**
-- Liste avec avatar, nom, statut
-- Badge statut (REGISTERED/CONFIRMED/PRESENT)
-- Action check-in (bouton ou QR scan)
-- Action retirer participant (admin)
-- Timestamps (inscrit le, pointé à)
-
-### 5.3 Composants Messages
-
-#### MessageBubble
-
-**Props :**
-```typescript
-interface MessageBubbleProps {
-  message: {
-    id: string;
-    content: string;
-    type: MessageType;
-    createdAt: string;
-    sender: {
-      id: string;
-      firstName: string;
-      lastName: string;
-      avatar: string | null;
-    };
-    editedAt: string | null;
-  };
-  isOwn: boolean;
-  showAvatar?: boolean;
-}
-```
-
-**Styles :**
-- Bulle alignée à droite si isOwn, sinon à gauche
-- Couleur différente (bleu pour soi, gris pour autres)
-- Avatar affiché si pas isOwn
-- Timestamp en petit en dessous
-- "(modifié)" si editedAt
-
-#### MessageInput
-
-**Props :**
-```typescript
-interface MessageInputProps {
-  onSend: (content: string) => Promise<void>;
-  onTyping?: () => void;
-  placeholder?: string;
-}
-```
-
-**Features :**
-- Textarea avec auto-resize
-- Bouton emoji picker
-- Bouton attach file
-- Bouton send
-- Event typing (debounced)
-- Support Enter pour envoyer
-- Shift+Enter pour nouvelle ligne
-
-### 5.4 Layout Components
-
-#### Sidebar
-
-**Features :**
-- Logo SDIS + nom tenant
-- Navigation principale :
-  - Dashboard
-  - FMPA
-  - Messages (avec badge unread)
-  - Formations
-  - Agenda
-  - Personnel
-  - Documents
-  - Settings
-- User menu en bas :
-  - Avatar + nom
-  - Profil
-  - Déconnexion
-- Collapsible sur mobile
-
-#### Header
-
-**Features :**
-- Breadcrumbs
-- Search global
-- Notifications dropdown (avec badge)
-- User dropdown
+- Content-Security-Policy (connect-src whitelist Sentry, Supabase, Upstash)
+- Strict-Transport-Security (HSTS 2 ans, preload)
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy (camera, microphone, geolocation desactives)
+- worker-src 'self' blob: (pour Sentry)
 
 ---
 
-## 6. Authentification & Sécurité
+## 6. Multi-Tenancy
 
-### 6.1 NextAuth Configuration
+### 6.1 Architecture
 
-**Fichier :** `src/lib/auth.ts`
+- Chaque modele Prisma porte un `tenantId` (FK vers Tenant)
+- Isolation via `where: { tenantId: session.user.tenantId }` dans chaque route
+- Sous-domaine routing en production : `sdis13.mindsp.fr` → tenant sdis13
+- Middleware verifie coherence sous-domaine / token JWT
 
-```typescript
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "./prisma";
-import bcrypt from "bcryptjs";
+### 6.2 Tenants disponibles
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-        tenantSlug: { label: "Tenant", type: "text" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password || !credentials?.tenantSlug) {
-          throw new Error("Missing credentials");
-        }
+| Slug | Nom | Status |
+|------|-----|--------|
+| sdis13 | SDIS des Bouches-du-Rhone | ACTIVE |
+| sdis06 | SDIS des Alpes-Maritimes | ACTIVE (demo) |
 
-        // Trouver le tenant
-        const tenant = await prisma.tenant.findUnique({
-          where: { slug: credentials.tenantSlug as string },
-        });
+### 6.3 Roles utilisateur
 
-        if (!tenant || tenant.status !== "ACTIVE") {
-          throw new Error("Tenant not found or inactive");
-        }
-
-        // Trouver l'utilisateur
-        const user = await prisma.user.findUnique({
-          where: {
-            tenantId_email: {
-              tenantId: tenant.id,
-              email: credentials.email as string,
-            },
-          },
-        });
-
-        if (!user || user.status !== "ACTIVE") {
-          throw new Error("Invalid credentials");
-        }
-
-        // Vérifier password
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        );
-
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        // Update last login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        });
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          role: user.role,
-          tenantId: user.tenantId,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.tenantId = user.tenantId;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.tenantId = token.tenantId as string;
-      }
-      return session;
-    },
-  },
-});
-```
-
-### 6.2 Middleware Protection
-
-**Fichier :** `src/middleware.ts`
-
-```typescript
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
-
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Public routes
-  const publicRoutes = ["/login", "/register", "/forgot-password"];
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next();
-  }
-
-  // Check auth
-  const session = await auth();
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // Extract tenant from subdomain
-  const host = request.headers.get("host") || "";
-  const subdomain = host.split(".")[0];
-
-  // Verify tenant matches session
-  const tenant = await prisma.tenant.findUnique({
-    where: { slug: subdomain },
-  });
-
-  if (!tenant || tenant.id !== session.user.tenantId) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-};
-```
-
-### 6.3 Rate Limiting
-
-**Librairie :** `@upstash/ratelimit`
-
-```typescript
-// lib/rate-limit.ts
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-export const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "10 s"), // 10 req per 10s
-  analytics: true,
-});
-
-// Usage dans API route
-export async function POST(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
-  const { success } = await ratelimit.limit(ip);
-  
-  if (!success) {
-    return new Response("Too many requests", { status: 429 });
-  }
-  
-  // ... suite
-}
-```
+| Role | Permissions |
+|------|------------|
+| SUPER_ADMIN | Tout |
+| ADMIN | Gestion tenant complete |
+| MANAGER | Gestion equipe, FMPA, formations |
+| USER | Consultation, participation |
 
 ---
 
-## 7. Multi-Tenancy
+## 7. Cache & Performance
 
-### 7.1 Stratégie d'Isolation
+### 7.1 Cache Redis (9 endpoints)
 
-**Approche :** Row-Level par `tenantId` + Subdomain routing
+| Endpoint | TTL | Cle |
+|----------|-----|-----|
+| /api/users | 5 min | users:{tenantId}:{search}:{page}:{limit} |
+| /api/search | 5 min | search:{tenantId}:{query}:{type}:{dates}:{limit} |
+| /api/calendar/events | 5 min | calendar:{tenantId}:{start}:{end}:{type} |
+| /api/news | 5 min | news:{tenantId}:{page}:{limit}:{filters} |
+| /api/mail/inbox | 5 min | mail:{tenantId}:{userId}:{page} |
+| /api/portals | 15 min | portals:{tenantId} |
+| /api/fmpa/[id]/stats | 5 min | fmpa:stats:{id} |
+| /api/fmpa/team-stats | 15 min | stats:team:{tenantId} |
+| /api/notifications/stats | 5 min | notif:stats:{userId} |
 
-**Prisma Middleware :**
+### 7.2 Invalidation cascade
 
-```typescript
-// lib/prisma.ts
-import { PrismaClient } from "@prisma/client";
+- POST/PATCH/DELETE calendar/events → `deletePattern(calendar:{tenantId}:*)`
+- POST news → `deletePattern(news:{tenantId}:*)`
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+### 7.3 Optimisations queries
 
-export const prisma = globalForPrisma.prisma || new PrismaClient();
+- N+1 elimines dans /api/fmpa/statistics (groupBy + findMany batch)
+- createMany avec skipDuplicates (messaging/lists/members, polls/vote)
+- Promise.all 6 sources paralleles (/api/search)
+- Slow query logging >500ms (Prisma middleware)
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+### 7.4 Optimisations frontend
 
-// Middleware pour filtrer par tenantId
-export function withTenant(tenantId: string) {
-  return prisma.$extends({
-    query: {
-      $allModels: {
-        async $allOperations({ args, query, model }) {
-          // Modèles sans tenant
-          const modelsWithoutTenant = ["Tenant", "RefreshToken", "AuditLog"];
-          if (modelsWithoutTenant.includes(model)) {
-            return query(args);
-          }
-
-          // Ajouter tenantId automatiquement
-          if (args.where) {
-            args.where = { ...args.where, tenantId };
-          } else {
-            args.where = { tenantId };
-          }
-
-          if (args.data && "tenantId" in args.data) {
-            args.data.tenantId = tenantId;
-          }
-
-          return query(args);
-        },
-      },
-    },
-  });
-}
-```
-
-**Usage :**
-
-```typescript
-// Dans API route
-export async function GET(req: Request) {
-  const session = await auth();
-  const db = withTenant(session.user.tenantId);
-  
-  const fmpas = await db.fmpa.findMany(); // Filtre auto par tenantId
-  
-  return Response.json({ data: fmpas });
-}
-```
-
-### 7.2 Subdomain Routing
-
-**next.config.js :**
-
-```javascript
-module.exports = {
-  async rewrites() {
-    return [
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "(?<tenant>.*)\\.mindsp\\.fr",
-          },
-        ],
-        destination: "/:path*",
-      },
-    ];
-  },
-};
-```
+- SWR cache client (deduplication 30s, mutations optimistes)
+- useMemo sur 5 composants calendrier/stats
+- React.memo sur 4 composants liste (Message, ParticipantItem, etc.)
+- optimizePackageImports: lucide-react, date-fns, framer-motion
 
 ---
 
-## 8. Temps Réel
+## 8. PWA & Offline
 
-### 8.1 Supabase Realtime (principal)
-
-Le projet utilise principalement **Supabase Realtime** pour le temps réel (chat, présence, notifications).
-Un serveur **Socket.IO** optionnel est également disponible pour des cas d'usage avancés.
-
-**Configuration :** `src/lib/supabase.ts` (lazy Proxy)
-
-### 8.2 Socket.IO Server (optionnel)
-
-**Fichier :** `src/lib/socket-client.ts`
-
-```typescript
-import { Server as HTTPServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-import { verify } from "jsonwebtoken";
-
-export function initSocketServer(httpServer: HTTPServer) {
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL,
-      credentials: true,
-    },
-  });
-
-  // Auth middleware
-  io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
-    
-    if (!token) {
-      return next(new Error("Authentication error"));
-    }
-
-    try {
-      const decoded = verify(token, process.env.JWT_SECRET!);
-      socket.data.userId = decoded.sub;
-      socket.data.tenantId = decoded.tenantId;
-      next();
-    } catch (err) {
-      next(new Error("Authentication error"));
-    }
-  });
-
-  io.on("connection", (socket) => {
-    const { userId, tenantId } = socket.data;
-
-    // Join tenant room
-    socket.join(`tenant:${tenantId}`);
-    socket.join(`user:${userId}`);
-
-    console.log(`User ${userId} connected to tenant ${tenantId}`);
-
-    // Message handlers
-    socket.on("message:send", async (data) => {
-      // Sauvegarder message en DB
-      const message = await saveMessage(data);
-      
-      // Broadcast to conversation
-      io.to(`conversation:${data.conversationId}`).emit("message:new", message);
-    });
-
-    socket.on("message:typing", (data) => {
-      socket.to(`conversation:${data.conversationId}`).emit("message:typing", {
-        userId,
-        conversationId: data.conversationId,
-      });
-    });
-
-    socket.on("disconnect", () => {
-      console.log(`User ${userId} disconnected`);
-    });
-  });
-
-  return io;
-}
-```
-
-### 8.2 Socket.IO Client Hook
-
-**Fichier :** `src/hooks/use-socket.ts`
-
-```typescript
-import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
-import { useSession } from "next-auth/react";
-
-export function useSocket() {
-  const { data: session } = useSession();
-  const socketRef = useRef<Socket | null>(null);
-
-  useEffect(() => {
-    if (!session?.accessToken) return;
-
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
-      auth: {
-        token: session.accessToken,
-      },
-    });
-
-    socket.on("connect", () => {
-      console.log("Socket connected");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    socketRef.current = socket;
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [session]);
-
-  return socketRef.current;
-}
-```
-
-### 8.3 Events WebSocket
-
-**Events list :**
-
-```typescript
-// Client → Server
-"message:send"           // Envoyer message
-"message:typing"         // Indicateur typing
-"conversation:join"      // Rejoindre conversation
-"conversation:leave"     // Quitter conversation
-"notification:ack"       // Accuser réception notif
-
-// Server → Client
-"message:new"            // Nouveau message
-"message:typing"         // Quelqu'un tape
-"message:read"           // Message lu
-"notification:push"      // Nouvelle notification
-"fmpa:updated"           // FMPA modifiée
-"user:status"            // Statut utilisateur (online/offline)
-```
-
----
-
-## 9. PWA & Offline
-
-### 9.1 PWA Configuration
-
-**manifest.json :**
+### 8.1 Configuration
 
 ```json
+// public/manifest.json
 {
   "name": "MindSP - Gestion SDIS",
   "short_name": "MindSP",
-  "description": "Solution SaaS de gestion pour SDIS",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
   "theme_color": "#1e40af",
-  "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
 }
 ```
 
-**next.config.js (avec next-pwa) :**
+### 8.2 Service Worker
 
-```javascript
-const withPWA = require("next-pwa")({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-});
+- Fichier : `public/sw.js`
+- Charge en lazy (`strategy="lazyOnload"`)
+- Push notifications via Web Push API
+- Page offline : `/offline`
 
-module.exports = withPWA({
-  // ... rest of config
-});
-```
+### 8.3 Push Notifications
 
-### 9.2 Service Worker Strategy
-
-**Fichier :** `public/sw.js`
-
-```javascript
-// Cache strategies
-const CACHE_NAME = "mindsp-v1";
-const API_CACHE = "mindsp-api-v1";
-
-// Assets to cache
-const urlsToCache = [
-  "/",
-  "/offline",
-  "/manifest.json",
-];
-
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // API calls: Network first, fallback to cache
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(API_CACHE).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Static assets: Cache first
-  event.respondWith(
-    caches.match(request).then((response) => response || fetch(request))
-  );
-});
-```
-
-### 9.3 Offline Store (Dexie)
-
-**Fichier :** `src/stores/offline.store.ts`
-
-```typescript
-import Dexie, { Table } from "dexie";
-
-interface OfflineFmpa {
-  id: string;
-  data: any;
-  syncStatus: "pending" | "synced" | "error";
-  lastSync: Date;
-}
-
-interface OfflineAction {
-  id: string;
-  type: "CREATE" | "UPDATE" | "DELETE";
-  entity: "fmpa" | "message" | "participation";
-  entityId: string;
-  payload: any;
-  timestamp: Date;
-}
-
-class OfflineDB extends Dexie {
-  fmpas!: Table<OfflineFmpa>;
-  actions!: Table<OfflineAction>;
-
-  constructor() {
-    super("MindSPOffline");
-    this.version(1).stores({
-      fmpas: "id, syncStatus, lastSync",
-      actions: "++id, type, entity, timestamp",
-    });
-  }
-}
-
-export const db = new OfflineDB();
-
-// Sync queue
-export async function queueAction(action: Omit<OfflineAction, "id" | "timestamp">) {
-  await db.actions.add({
-    ...action,
-    timestamp: new Date(),
-  });
-}
-
-export async function syncPendingActions() {
-  const actions = await db.actions.toArray();
-  
-  for (const action of actions) {
-    try {
-      // Send to API
-      await fetch(`/api/${action.entity}`, {
-        method: action.type === "CREATE" ? "POST" : action.type === "UPDATE" ? "PUT" : "DELETE",
-        body: JSON.stringify(action.payload),
-      });
-      
-      // Delete from queue
-      await db.actions.delete(action.id!);
-    } catch (error) {
-      console.error("Sync error:", error);
-    }
-  }
-}
-```
+- Modele : PushSubscription (userId, endpoint, keys)
+- API : /api/push/subscribe, /api/push/send, /api/push/unsubscribe
+- Service : WebPushService (VAPID keys)
 
 ---
 
-## 10. Seed Data
+## 9. Monitoring & Observabilite
 
-### 10.1 Structure Seed
-
-**Fichier :** `prisma/seed/index.ts`
+### 9.1 Sentry
 
 ```typescript
-import { PrismaClient } from "@prisma/client";
-import { seedTenants } from "./tenants";
-import { seedUsers } from "./users";
-import { seedFmpas } from "./fmpas";
-import { seedFormations } from "./formations";
-
-const prisma = new PrismaClient();
-
-async function main() {
-  console.log("🌱 Starting seed...");
-
-  // 1. Tenants
-  const tenants = await seedTenants(prisma);
-  console.log(`✅ Created ${tenants.length} tenants`);
-
-  // 2. Users
-  const users = await seedUsers(prisma, tenants);
-  console.log(`✅ Created ${users.length} users`);
-
-  // 3. FMPAs
-  const fmpas = await seedFmpas(prisma, tenants, users);
-  console.log(`✅ Created ${fmpas.length} FMPAs`);
-
-  // 4. Formations
-  const formations = await seedFormations(prisma, tenants, users);
-  console.log(`✅ Created ${formations.length} formations`);
-
-  console.log("🎉 Seed completed!");
-}
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// sentry.client.config.ts
+- tracesSampleRate: 0.1 (10% des transactions)
+- replaysSessionSampleRate: 0 (pas de replay normal)
+- replaysOnErrorSampleRate: 1.0 (replay sur erreur)
+- ignoreErrors: ResizeObserver, Non-Error promise, Load failed
 ```
 
-### 10.2 Seed Tenants
+### 9.2 Health Check
 
-**Fichier :** `prisma/seed/tenants.ts`
+- Endpoint : GET /api/health
+- Verifie : connexion DB, uptime, version
 
-```typescript
-import { PrismaClient, Tenant } from "@prisma/client";
+### 9.3 Audit Log
 
-export async function seedTenants(prisma: PrismaClient): Promise<Tenant[]> {
-  const tenants = [
-    {
-      id: "tenant-sdis-13",
-      slug: "sdis13",
-      name: "SDIS des Bouches-du-Rhône",
-      domain: "sdis13.mindsp.local",
-      status: "ACTIVE" as const,
-      primaryColor: "#dc2626",
-      config: {
-        features: ["fmpa", "messaging", "formations", "agenda"],
-        branding: {
-          logoUrl: "/logos/sdis13.png",
-        },
-      },
-    },
-    {
-      id: "tenant-sdis-06",
-      slug: "sdis06",
-      name: "SDIS des Alpes-Maritimes",
-      domain: "sdis06.mindsp.local",
-      status: "ACTIVE" as const,
-      primaryColor: "#2563eb",
-      config: {
-        features: ["fmpa", "messaging"],
-      },
-    },
-  ];
-
-  const created = [];
-  for (const tenant of tenants) {
-    const t = await prisma.tenant.upsert({
-      where: { slug: tenant.slug },
-      create: tenant,
-      update: tenant,
-    });
-    created.push(t);
-  }
-
-  return created;
-}
-```
-
-### 10.3 Seed Users
-
-**Fichier :** `prisma/seed/users.ts`
-
-```typescript
-import { PrismaClient, Tenant, User } from "@prisma/client";
-import bcrypt from "bcryptjs";
-
-export async function seedUsers(
-  prisma: PrismaClient,
-  tenants: Tenant[]
-): Promise<User[]> {
-  const password = await bcrypt.hash("Password123!", 10);
-
-  const users = [
-    // SDIS 13
-    {
-      tenantId: tenants[0].id,
-      email: "admin@sdis13.fr",
-      passwordHash: password,
-      firstName: "Jean",
-      lastName: "Dupont",
-      role: "ADMIN" as const,
-      status: "ACTIVE" as const,
-      badge: "ADM-001",
-    },
-    {
-      tenantId: tenants[0].id,
-      email: "chef@sdis13.fr",
-      passwordHash: password,
-      firstName: "Marie",
-      lastName: "Martin",
-      role: "MANAGER" as const,
-      status: "ACTIVE" as const,
-      badge: "MGR-001",
-    },
-    {
-      tenantId: tenants[0].id,
-      email: "user1@sdis13.fr",
-      passwordHash: password,
-      firstName: "Pierre",
-      lastName: "Durand",
-      role: "USER" as const,
-      status: "ACTIVE" as const,
-      badge: "USR-001",
-    },
-    {
-      tenantId: tenants[0].id,
-      email: "user2@sdis13.fr",
-      passwordHash: password,
-      firstName: "Sophie",
-      lastName: "Bernard",
-      role: "USER" as const,
-      status: "ACTIVE" as const,
-      badge: "USR-002",
-    },
-    // SDIS 06
-    {
-      tenantId: tenants[1].id,
-      email: "admin@sdis06.fr",
-      passwordHash: password,
-      firstName: "Luc",
-      lastName: "Moreau",
-      role: "ADMIN" as const,
-      status: "ACTIVE" as const,
-      badge: "ADM-001",
-    },
-    {
-      tenantId: tenants[1].id,
-      email: "user1@sdis06.fr",
-      passwordHash: password,
-      firstName: "Emma",
-      lastName: "Petit",
-      role: "USER" as const,
-      status: "ACTIVE" as const,
-      badge: "USR-001",
-    },
-  ];
-
-  const created = [];
-  for (const user of users) {
-    const u = await prisma.user.upsert({
-      where: {
-        tenantId_email: {
-          tenantId: user.tenantId,
-          email: user.email,
-        },
-      },
-      create: user,
-      update: user,
-    });
-    created.push(u);
-  }
-
-  return created;
-}
-```
-
-### 10.4 Seed FMPAs
-
-**Fichier :** `prisma/seed/fmpas.ts`
-
-```typescript
-import { PrismaClient, Tenant, User, FMPA } from "@prisma/client";
-import { addDays, addHours } from "date-fns";
-
-export async function seedFmpas(
-  prisma: PrismaClient,
-  tenants: Tenant[],
-  users: User[]
-): Promise<FMPA[]> {
-  const now = new Date();
-  const adminSDIS13 = users.find(
-    (u) => u.tenantId === tenants[0].id && u.role === "ADMIN"
-  )!;
-  const adminSDIS06 = users.find(
-    (u) => u.tenantId === tenants[1].id && u.role === "ADMIN"
-  )!;
-
-  const fmpas = [
-    // SDIS 13
-    {
-      tenantId: tenants[0].id,
-      type: "FORMATION" as const,
-      title: "Formation INC 1 - Équipier",
-      description:
-        "Formation initiale de sapeur-pompier volontaire - Module INC 1",
-      startDate: addDays(now, 7),
-      endDate: addDays(addHours(now, 8), 7),
-      location: "Centre de formation SDIS 13 - Marseille",
-      maxParticipants: 20,
-      status: "PUBLISHED" as const,
-      createdById: adminSDIS13.id,
-      qrCode: "FMPA-FORM-001",
-    },
-    {
-      tenantId: tenants[0].id,
-      type: "MANOEUVRE" as const,
-      title: "Manœuvre incendie - Feu de véhicule",
-      description: "Exercice pratique sur feu de véhicule avec ARI",
-      startDate: addDays(now, 3),
-      endDate: addDays(addHours(now, 4), 3),
-      location: "Terrain de manœuvre - Aix-en-Provence",
-      maxParticipants: 15,
-      status: "PUBLISHED" as const,
-      createdById: adminSDIS13.id,
-      qrCode: "FMPA-MANO-001",
-    },
-    {
-      tenantId: tenants[0].id,
-      type: "PRESENCE_ACTIVE" as const,
-      title: "Garde weekend - CIS Marseille Nord",
-      description: "Garde 24h - CIS Marseille Nord",
-      startDate: addDays(now, 5),
-      endDate: addDays(addHours(now, 24), 5),
-      location: "CIS Marseille Nord",
-      maxParticipants: 8,
-      status: "PUBLISHED" as const,
-      createdById: adminSDIS13.id,
-      qrCode: "FMPA-PA-001",
-    },
-    // SDIS 06
-    {
-      tenantId: tenants[1].id,
-      type: "FORMATION" as const,
-      title: "Recyclage AFGSU Niveau 2",
-      description: "Attestation de Formation aux Gestes et Soins d'Urgence",
-      startDate: addDays(now, 10),
-      endDate: addDays(addHours(now, 7), 10),
-      location: "SDIS 06 - Nice",
-      maxParticipants: 12,
-      status: "PUBLISHED" as const,
-      createdById: adminSDIS06.id,
-      qrCode: "FMPA-FORM-002",
-    },
-  ];
-
-  const created = [];
-  for (const fmpa of fmpas) {
-    const f = await prisma.fMPA.create({
-      data: fmpa,
-    });
-    created.push(f);
-
-    // Créer participations
-    const tenantUsers = users.filter(
-      (u) => u.tenantId === fmpa.tenantId && u.role === "USER"
-    );
-    
-    for (let i = 0; i < Math.min(3, tenantUsers.length); i++) {
-      await prisma.participation.create({
-        data: {
-          fmpaId: f.id,
-          userId: tenantUsers[i].id,
-          status: i === 0 ? "PRESENT" : "CONFIRMED",
-          registeredAt: addDays(now, -2),
-          confirmedAt: addDays(now, -1),
-          checkInTime: i === 0 ? fmpa.startDate : null,
-        },
-      });
-    }
-  }
-
-  return created;
-}
-```
+- Modele : AuditLog (action, entity, entityId, changes, metadata)
+- API : GET /api/audit
 
 ---
 
-## 11. Configuration Technique
+## 10. Deploiement
 
-### 11.1 Environment Variables
-
-**Fichier :** `.env.example`
-
-```bash
-# Database (Supabase PostgreSQL)
-DATABASE_URL="postgresql://..."
-DIRECT_URL="postgresql://..."  # Connexion directe pour migrations
-
-# Supabase (Realtime + Storage)
-NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT-REF].supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
-
-# NextAuth v5
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="..."  # openssl rand -base64 32
-
-# Redis (Upstash)
-UPSTASH_REDIS_REST_URL="..."
-UPSTASH_REDIS_REST_TOKEN="..."
-
-# Email (Resend)
-RESEND_API_KEY="..."
-EMAIL_FROM="MindSP <noreply@mindsp.fr>"
-
-# File Upload (UploadThing)
-UPLOADTHING_SECRET="..."
-UPLOADTHING_APP_ID="..."
-
-# Web Push (VAPID)
-NEXT_PUBLIC_VAPID_PUBLIC_KEY="..."
-VAPID_PRIVATE_KEY="..."
-
-# Monitoring (Sentry)
-NEXT_PUBLIC_SENTRY_DSN="..."
-SENTRY_ORG="..."
-SENTRY_PROJECT="..."
-
-# Socket.IO (optionnel, serveur dedie)
-NEXT_PUBLIC_SOCKET_URL="http://localhost:3001"
-
-# CORS
-ALLOWED_ORIGINS="localhost:3000"
-```
-
-### 11.3 TypeScript Configuration
-
-**tsconfig.json :**
+### 10.1 Vercel
 
 ```json
+// vercel.json
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "buildCommand": "prisma generate --no-engine && next build",
+  "framework": "nextjs",
+  "regions": ["cdg1"]
 }
 ```
 
----
+### 10.2 Variables d'environnement requises
 
-## 12. User Stories
+| Variable | Description |
+|----------|-------------|
+| DATABASE_URL | PostgreSQL connection string (pooler) |
+| DIRECT_URL | PostgreSQL direct connection (migrations) |
+| NEXTAUTH_URL | URL de l'app (sans / final) |
+| NEXTAUTH_SECRET | Secret JWT (base64 32 bytes) |
+| UPSTASH_REDIS_REST_URL | Upstash Redis endpoint |
+| UPSTASH_REDIS_REST_TOKEN | Upstash Redis token (read-write) |
+| NEXT_PUBLIC_SENTRY_DSN | Sentry DSN |
+| SENTRY_ORG | Organisation Sentry |
+| SENTRY_PROJECT | Projet Sentry |
+| SENTRY_AUTH_TOKEN | Token auth Sentry |
+| NEXT_PUBLIC_SUPABASE_URL | Supabase project URL |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase anon key |
+| NEXT_PUBLIC_SOCKET_URL | Socket.IO server URL (Render) |
+| RESEND_API_KEY | Cle API Resend |
+| UPLOADTHING_SECRET | Secret UploadThing |
+| UPLOADTHING_APP_ID | App ID UploadThing |
+| ALLOWED_ORIGINS | Origines autorisees (comma-separated) |
 
-### 12.1 Module FMPA
+### 10.3 Build
 
-#### US-FMPA-001 : Créer une FMPA
-**En tant que** Chef de centre  
-**Je veux** créer une formation/manœuvre/présence active  
-**Afin de** planifier les activités du centre
-
-**Critères d'acceptance :**
-- [ ] Formulaire avec tous les champs (type, titre, dates, lieu, max participants)
-- [ ] Validation temps réel
-- [ ] Génération automatique QR code
-- [ ] Status initial : DRAFT
-- [ ] Email de notification aux admin/managers
-- [ ] Redirect vers page détail après création
-
-#### US-FMPA-002 : S'inscrire à une FMPA
-**En tant que** Sapeur-pompier  
-**Je veux** m'inscrire à une activité  
-**Afin de** participer
-
-**Critères d'acceptance :**
-- [ ] Bouton "S'inscrire" visible si FMPA published
-- [ ] Vérification places disponibles
-- [ ] Inscription instantanée ou en attente validation
-- [ ] Confirmation par email
-- [ ] Apparition dans la liste des participants
-- [ ] Possibilité de se désinscrire (si > 24h avant)
-
-#### US-FMPA-003 : Pointer sa présence
-**En tant que** Sapeur-pompier  
-**Je veux** scanner le QR code pour pointer  
-**Afin de** confirmer ma présence
-
-**Critères d'acceptance :**
-- [ ] Scan QR code via PWA
-- [ ] Vérification code + inscription
-- [ ] Enregistrement timestamp checkIn
-- [ ] Status passe à PRESENT
-- [ ] Toast de confirmation
-- [ ] Impossible de pointer 2 fois
-
-#### US-FMPA-004 : Exporter liste émargement
-**En tant que** Chef de centre  
-**Je veux** exporter la liste des participants en PDF  
-**Afin de** avoir un document signable
-
-**Critères d'acceptance :**
-- [ ] Bouton "Exporter PDF"
-- [ ] PDF avec logo SDIS, titre FMPA, date/lieu
-- [ ] Tableau : Nom, Prénom, Matricule, Signature (vide)
-- [ ] Horodatage du document
-- [ ] Téléchargement automatique
-
-### 12.2 Module Messagerie
-
-#### US-MSG-001 : Envoyer un message
-**En tant que** Utilisateur  
-**Je veux** envoyer un message à un collègue  
-**Afin de** communiquer rapidement
-
-**Critères d'acceptance :**
-- [ ] Liste des conversations à gauche
-- [ ] Zone de saisie avec bouton envoyer
-- [ ] Message apparaît instantanément
-- [ ] Réception temps réel via WebSocket
-- [ ] Support Shift+Enter pour nouvelle ligne
-- [ ] Indicateur "vu" quand lu
-
-#### US-MSG-002 : Créer conversation de groupe
-**En tant que** Manager  
-**Je veux** créer un groupe de discussion  
-**Afin de** communiquer avec une équipe
-
-**Critères d'acceptance :**
-- [ ] Bouton "Nouveau groupe"
-- [ ] Sélection multi-utilisateurs
-- [ ] Champ nom du groupe
-- [ ] Avatar optionnel
-- [ ] Création instantanée
-- [ ] Tous les membres notifiés
-
----
-
-## 13. Workflows Métier
-
-### 13.1 Workflow Inscription FMPA
-
-```mermaid
-graph TD
-    A[Utilisateur voit FMPA] --> B{FMPA Published?}
-    B -->|Non| C[Badge DRAFT - Pas d'inscription]
-    B -->|Oui| D{Places disponibles?}
-    D -->|Non| E[Badge COMPLET]
-    D -->|Oui| F[Bouton S'inscrire actif]
-    F --> G{Nécessite validation?}
-    G -->|Oui| H[Status PENDING]
-    G -->|Non| I[Status CONFIRMED]
-    H --> J[Admin valide]
-    J --> I
-    I --> K[Email confirmation]
-    K --> L[Utilisateur dans liste participants]
 ```
-
-### 13.2 Workflow Check-in
-
-```mermaid
-graph TD
-    A[Jour J - FMPA] --> B[Utilisateur ouvre PWA]
-    B --> C[Scan QR Code]
-    C --> D{Code valide?}
-    D -->|Non| E[Erreur : Code invalide]
-    D -->|Oui| F{Utilisateur inscrit?}
-    F -->|Non| G[Erreur : Non inscrit]
-    F -->|Oui| H{Déjà pointé?}
-    H -->|Oui| I[Message : Déjà présent]
-    H -->|Non| J[Enregistrement checkInTime]
-    J --> K[Status → PRESENT]
-    K --> L[Toast succès]
-    L --> M[Apparaît dans liste présents]
-```
-
-### 13.3 Workflow Validation Formation
-
-```mermaid
-graph TD
-    A[Utilisateur s'inscrit] --> B[Status PENDING]
-    B --> C[Email notification Manager]
-    C --> D[Manager examine demande]
-    D --> E{Décision}
-    E -->|Approuver| F[Status → APPROVED]
-    E -->|Refuser| G[Status → REJECTED + motif]
-    F --> H[Email confirmation utilisateur]
-    G --> I[Email refus utilisateur]
-    H --> J[Utilisateur dans liste participants]
-    I --> K[Possibilité réinscription]
+TypeScript: ignoreBuildErrors = false (strict)
+ESLint: ignoreDuringBuilds = false (strict)
+@ts-nocheck: 0 fichiers
+First Load JS shared: ~158 KB (dont ~70 KB Sentry)
 ```
 
 ---
 
-## 14. Critères d'Acceptance par Phase
+## 11. Compte Demo
 
-### Phase 1 : Foundation
+```
+Tenant: sdis06 (SDIS des Alpes-Maritimes)
+Email: demo@sdis06.fr
+Mot de passe: Demo2026!
+Role: ADMIN (acces complet)
+```
 
-**Critères GO :**
-- [ ] Next.js build sans erreur
-- [ ] Prisma migrate fonctionne
-- [ ] Seed data complet s'exécute
-- [ ] Page d'accueil s'affiche
-- [ ] Tailwind fonctionne
-- [ ] Au moins 1 test unitaire passe
-- [ ] Deploy staging réussi
-
-### Phase 2 : Auth & Multi-tenancy
-
-**Critères GO :**
-- [ ] Login fonctionne avec email/password
-- [ ] JWT généré et valide
-- [ ] Refresh token fonctionne
-- [ ] Protection routes effective
-- [ ] Subdomain routing opérationnel
-- [ ] Tenant isolation vérifiée (pas d'accès cross-tenant)
-- [ ] Tests E2E login/logout passent
-
-### Phase 3 : Module FMPA
-
-**Critères GO :**
-- [ ] CRUD FMPA complet
-- [ ] Inscriptions fonctionnelles
-- [ ] QR code généré et scannable
-- [ ] Export PDF fonctionne
-- [ ] Notifications envoyées
-- [ ] Tests E2E workflow complet passent
-- [ ] Performance < 2s pour liste 100 FMPA
-
-### Phase 4 : Messagerie
-
-**Critères GO :**
-- [ ] WebSocket connecté et stable
-- [ ] Messages temps réel (< 500ms)
-- [ ] Historique messages paginé
-- [ ] Indicateurs lecture fonctionnels
-- [ ] Reconnexion automatique
-- [ ] Tests charge 100 users simultanés
+Donnees de demo : 11 utilisateurs, 12 FMPA, formations, fiches personnel, actualites, notifications.
