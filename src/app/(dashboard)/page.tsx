@@ -138,14 +138,12 @@ export default function DashboardPage() {
       // Alertes personnel (qualifications expirant bientot)
       const alertsRes = await fetch("/api/personnel/alerts").then((r) => r.ok ? r.json() : null).catch(() => null);
       if (alertsRes?.alerts) {
-        setAlerts(
-          alertsRes.alerts.slice(0, 4).map((a: any) => ({
-            type: a.type,
-            name: a.title,
-            user: a.description,
-            daysLeft: a.daysUntilExpiry ?? 0,
-          }))
-        );
+        const allAlerts = [
+          ...(alertsRes.alerts.medical || []).map((a: any) => ({ type: "medical", name: a.userName || "Aptitude medicale", user: `Expire ${a.urgency}`, daysLeft: a.daysUntilExpiry ?? 0 })),
+          ...(alertsRes.alerts.qualifications || []).map((a: any) => ({ type: "qualification", name: a.name || "Qualification", user: a.userName || "", daysLeft: a.daysUntilExpiry ?? 0 })),
+          ...(alertsRes.alerts.equipment || []).map((a: any) => ({ type: "equipment", name: a.name || "Equipement", user: a.userName || "", daysLeft: a.daysUntilExpiry ?? 0 })),
+        ];
+        setAlerts(allAlerts.slice(0, 4));
       }
 
       // Taux de participation (stats FMPA)
