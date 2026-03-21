@@ -37,6 +37,7 @@ const nextConfig = {
       font-src 'self' data: https://fonts.gstatic.com;
       connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.supabase.co wss://*.supabase.co;
       media-src 'self' blob: data:;
+      worker-src 'self' blob:;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
