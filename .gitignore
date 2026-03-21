@@ -71,3 +71,6 @@ public/workbox-*.js.map
 .cache
 temp
 tmp
+
+# Sentry Config File
+.env.sentry-build-plugin

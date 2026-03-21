@@ -35,7 +35,7 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https://utfs.io https://*.uploadthing.com;
       font-src 'self' data: https://fonts.gstatic.com;
-      connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app https://*.ingest.sentry.io https://*.supabase.co wss://*.supabase.co;
+      connect-src 'self' https://api.uploadthing.com https://*.upstash.io ${socketUrl} ${socketWs} wss://*.railway.app https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.supabase.co wss://*.supabase.co;
       media-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
