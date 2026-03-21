@@ -127,7 +127,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="admin@sdis13.fr"
+                placeholder={`email@${tenantSlug}.fr`}
                 required
                 disabled={isLoading}
               />
