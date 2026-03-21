@@ -22,7 +22,7 @@ const navigation = [
   { name: "Actualités", href: "/actualites", icon: Icons.info.info },
   { name: "Documents", href: "/documents", icon: Icons.nav.documents },
   { name: "Design", href: "/showcase", icon: "🎨" },
-  { name: "Paramètres", href: "/settings", icon: Icons.nav.settings },
+  { name: "Paramètres", href: "/settings/notifications", icon: Icons.nav.settings },
 ];
 
 function SidebarContent({ collapsed, onNavClick }: { collapsed: boolean; onNavClick?: () => void }) {

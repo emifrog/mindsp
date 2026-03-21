@@ -48,7 +48,7 @@ export function Header() {
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/auth/login" });
+    await signOut({ redirect: true, callbackUrl: "/auth/login" });
   };
 
   return (
