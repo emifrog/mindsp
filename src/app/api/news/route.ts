@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { CacheService, CACHE_TTL } from "@/lib/cache";
+export const dynamic = "force-dynamic";
 
 // GET /api/news - Liste des actualités
 export async function GET(request: NextRequest) {

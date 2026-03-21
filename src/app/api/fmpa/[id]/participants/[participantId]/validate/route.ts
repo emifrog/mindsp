@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 const validateSchema = z.object({
   status: z.enum(["CONFIRMED", "PRESENT", "ABSENT", "EXCUSED"]),

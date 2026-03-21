@@ -6,6 +6,7 @@ import {
   generateManeuverReport,
 } from "@/lib/fmpa-exports";
 import * as XLSX from "xlsx";
+export const dynamic = "force-dynamic";
 
 // GET /api/fmpa/[id]/export?type=attendance|participants|report
 export async function GET(
@@ -21,6 +22,15 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const exportType = searchParams.get("type") || "participants";
+
+    // Vérifier que la FMPA appartient au tenant de l'utilisateur
+    const fmpa = await (await import("@/lib/prisma")).prisma.fMPA.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId },
+      select: { id: true },
+    });
+    if (!fmpa) {
+      return NextResponse.json({ error: "FMPA non trouvée" }, { status: 404 });
+    }
 
     // Logger l'audit de l'export
     const { logExport } = await import("@/lib/audit");

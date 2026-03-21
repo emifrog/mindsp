@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { updateFMPASchema } from "@/lib/validations/fmpa";
+export const dynamic = "force-dynamic";
 
 // GET /api/fmpa/[id] - Détails d'une FMPA
 export async function GET(

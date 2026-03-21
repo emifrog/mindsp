@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 const voteSchema = z.object({
   optionIds: z.array(z.string()).min(1),

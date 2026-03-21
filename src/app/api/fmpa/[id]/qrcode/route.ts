@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { generateFMPAQRCode } from "@/lib/qrcode";
+export const dynamic = "force-dynamic";
 
 // GET /api/fmpa/[id]/qrcode - Générer le QR code d'une FMPA
 export async function GET(

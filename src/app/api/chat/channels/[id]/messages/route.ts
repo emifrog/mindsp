@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+export const dynamic = "force-dynamic";
 
 // GET /api/chat/channels/[id]/messages - Messages d'un canal
 export async function GET(

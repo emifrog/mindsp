@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 // POST /api/fmpa/[id]/register - S'inscrire à une FMPA
 export async function POST(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+export const dynamic = "force-dynamic";
 
 // GET /api/calendar/availability - Liste des disponibilités
 export async function GET(request: NextRequest) {

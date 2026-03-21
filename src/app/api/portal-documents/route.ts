@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+export const dynamic = "force-dynamic";
 
 // GET /api/portal-documents - Liste des documents
 export async function GET(request: NextRequest) {
@@ -26,20 +27,30 @@ export async function GET(request: NextRequest) {
       where.category = category as any;
     }
 
+    const andConditions: Prisma.PortalDocumentWhereInput[] = [];
+
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { tags: { has: search } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+          { tags: { has: search } },
+        ],
+      });
     }
 
     // Filtrer par permissions
     if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
-      where.OR = [
-        { isPublic: true },
-        { allowedRoles: { has: session.user.role } },
-      ];
+      andConditions.push({
+        OR: [
+          { isPublic: true },
+          { allowedRoles: { has: session.user.role } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const [documents, total] = await Promise.all([

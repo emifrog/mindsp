@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { NotificationService } from "@/lib/notification-service";
+export const dynamic = "force-dynamic";
 
 // PATCH /api/notifications/[id] - Marquer comme lu
 export async function PATCH(

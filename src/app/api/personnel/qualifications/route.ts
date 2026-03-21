@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 const createQualificationSchema = z.object({
   personnelFileId: z.string(),
@@ -29,7 +30,9 @@ export async function GET(request: NextRequest) {
     const personnelFileId = searchParams.get("personnelFileId");
     const status = searchParams.get("status");
 
-    const where: Prisma.QualificationWhereInput = {};
+    const where: Prisma.QualificationWhereInput = {
+      personnelFile: { tenantId: session.user.tenantId },
+    };
     if (personnelFileId) where.personnelFileId = personnelFileId;
     if (status) where.status = status as any;
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { dailyFMPAReminders } from "@/lib/fmpa-reminders";
+export const dynamic = "force-dynamic";
 
 // POST /api/fmpa/reminders - Déclencher l'envoi des rappels (admin seulement)
 export async function POST(request: NextRequest) {

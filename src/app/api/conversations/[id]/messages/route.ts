@@ -7,6 +7,7 @@ import {
   paginationSchema,
 } from "@/lib/validation-schemas";
 import { sanitizeString } from "@/lib/sanitize";
+export const dynamic = "force-dynamic";
 
 // GET /api/conversations/[id]/messages - Liste des messages
 export async function GET(

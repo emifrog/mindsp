@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 // POST /api/tta/entries/[id]/validate - Valider/Rejeter une entrée
 export async function POST(

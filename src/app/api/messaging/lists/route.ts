@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 // Schéma de validation pour création de liste
 const createListSchema = z.object({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { CacheService, CACHE_TTL } from "@/lib/cache";
+export const dynamic = "force-dynamic";
 
 // GET /api/fmpa/[id]/stats - Statistiques d'une FMPA
 export async function GET(

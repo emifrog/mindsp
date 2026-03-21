@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 // DELETE /api/tta/entries/[id] - Supprimer une entrée
 export async function DELETE(

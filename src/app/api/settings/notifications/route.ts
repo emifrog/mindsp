@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 // GET /api/settings/notifications - Récupérer les préférences
 export async function GET(request: NextRequest) {

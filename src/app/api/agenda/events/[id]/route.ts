@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 // Schema de validation pour la mise à jour
 const updateEventSchema = z.object({

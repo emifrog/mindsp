@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+export const dynamic = "force-dynamic";
 
 // POST /api/push/unsubscribe - Se désabonner des notifications push
 export async function POST(request: NextRequest) {

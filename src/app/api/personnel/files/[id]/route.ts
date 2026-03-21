@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+export const dynamic = "force-dynamic";
 
 const updateFileSchema = z.object({
   engagementDate: z.string().optional(),
@@ -22,8 +23,8 @@ export async function GET(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const file = await prisma.personnelFile.findUnique({
-      where: { id: params.id },
+    const file = await prisma.personnelFile.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId },
       include: {
         user: {
           select: {
@@ -110,6 +111,15 @@ export async function PATCH(
     if (data.currentGrade) updateData.currentGrade = data.currentGrade;
     if (data.gradeDate) updateData.gradeDate = new Date(data.gradeDate);
 
+    // Vérifier que la fiche appartient au tenant
+    const existing = await prisma.personnelFile.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId },
+      select: { id: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Fiche non trouvée" }, { status: 404 });
+    }
+
     const file = await prisma.personnelFile.update({
       where: { id: params.id },
       data: updateData,
@@ -155,9 +165,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
-    // Récupérer les données avant suppression pour l'audit
-    const personnelFile = await prisma.personnelFile.findUnique({
-      where: { id: params.id },
+    // Récupérer les données avant suppression pour l'audit (avec tenant check)
+    const personnelFile = await prisma.personnelFile.findFirst({
+      where: { id: params.id, tenantId: session.user.tenantId },
       include: {
         user: { select: { firstName: true, lastName: true, email: true } },
         medicalStatus: true,

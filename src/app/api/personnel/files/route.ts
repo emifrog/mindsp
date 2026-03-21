@@ -13,6 +13,8 @@ import {
   invalidatePersonnelCache,
 } from "@/lib/cache";
 
+export const dynamic = "force-dynamic";
+
 const createFileSchema = z.object({
   userId: z.string(),
   engagementDate: z.string(),
@@ -32,10 +34,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    // Si userId spécifié, retourner une fiche spécifique
+    // Si userId spécifié, retourner une fiche spécifique (avec tenant isolation)
     if (userId) {
-      const file = await prisma.personnelFile.findUnique({
-        where: { userId },
+      const file = await prisma.personnelFile.findFirst({
+        where: { userId, tenantId: session.user.tenantId },
         include: {
           user: {
             select: {

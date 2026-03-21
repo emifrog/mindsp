@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { generateCSV } from "@/lib/export/csv-generator";
 import { generateSEPA } from "@/lib/export/sepa-generator";
+export const dynamic = "force-dynamic";
 
 // POST /api/tta/export - Créer un export
 export async function POST(request: NextRequest) {

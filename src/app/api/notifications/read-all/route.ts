@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { markAllNotificationsAsRead } from "@/lib/notifications";
+export const dynamic = "force-dynamic";
 
 // POST /api/notifications/read-all - Marquer toutes comme lues
 export async function POST(request: NextRequest) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { CacheService } from "@/lib/cache";
+export const dynamic = "force-dynamic";
 
 // GET /api/calendar/events/[id] - Détails événement
 export async function GET(
