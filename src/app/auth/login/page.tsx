@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -40,42 +39,46 @@ function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        tenantSlug,
-        redirect: false,
+      // 1. Récupérer le token CSRF
+      const csrfRes = await fetch("/api/auth/csrf");
+      const { csrfToken } = await csrfRes.json();
+
+      // 2. Soumettre les credentials directement
+      const res = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrfToken,
+          email,
+          password,
+          tenantSlug,
+          json: "true",
+        }),
       });
 
-      console.log("signIn result:", JSON.stringify(result));
+      const data = await res.json().catch(() => null);
 
-      if (!result) {
-        // NextAuth v5 beta peut retourner undefined — vérifier la session
-        const sessionRes = await fetch("/api/auth/session");
-        const session = await sessionRes.json();
-
-        if (session?.user) {
-          window.location.href = callbackUrl || "/";
-          return;
-        }
-
-        toast({
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect",
-          variant: "destructive",
-        });
-      } else if (result.error) {
-        toast({
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect",
-          variant: "destructive",
-        });
-      } else {
+      if (res.ok && data?.url) {
+        // Succès — rediriger
         window.location.href = callbackUrl || "/";
         return;
       }
+
+      // 3. Vérifier la session (fallback)
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+
+      if (session?.user) {
+        window.location.href = callbackUrl || "/";
+        return;
+      }
+
+      toast({
+        title: "Erreur de connexion",
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive",
+      });
     } catch (error) {
-      console.error("signIn error:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la connexion",
