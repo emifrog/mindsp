@@ -46,6 +46,7 @@ function LoginForm() {
         password,
         tenantSlug,
         redirect: false,
+        callbackUrl,
       });
 
       if (result?.error) {
@@ -58,13 +59,20 @@ function LoginForm() {
           description: errorMessages[result.error] || "Email ou mot de passe incorrect",
           variant: "destructive",
         });
-      } else {
+      } else if (result?.ok) {
         toast({
           title: "Connexion réussie",
           description: "Bienvenue sur MindSP !",
         });
-        router.push(callbackUrl);
-        router.refresh();
+        // Forcer la redirection via window.location pour éviter les problèmes de cache router
+        window.location.href = result.url || callbackUrl || "/";
+      } else {
+        // Cas où result n'a ni error ni ok (NextAuth v5 beta edge case)
+        toast({
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       toast({
