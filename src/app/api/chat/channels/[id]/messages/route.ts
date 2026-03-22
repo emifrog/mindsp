@@ -124,3 +124,87 @@ export async function GET(
     );
   }
 }
+
+// POST /api/chat/channels/[id]/messages - Envoyer un message
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
+
+    const channelId = params.id;
+
+    // Vérifier que l'utilisateur est membre du canal
+    const membership = await prisma.chatChannelMember.findUnique({
+      where: {
+        channelId_userId: {
+          channelId,
+          userId: session.user.id,
+        },
+      },
+    });
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: "Vous n'êtes pas membre de ce canal" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { content, parentId } = body;
+
+    if (!content || !content.trim()) {
+      return NextResponse.json(
+        { error: "Le message ne peut pas être vide" },
+        { status: 400 }
+      );
+    }
+
+    const message = await prisma.chatMessage.create({
+      data: {
+        channelId,
+        userId: session.user.id,
+        content: content.trim(),
+        parentId: parentId || null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        reactions: true,
+        attachments: true,
+        mentions: true,
+        _count: {
+          select: {
+            replies: true,
+          },
+        },
+      },
+    });
+
+    // Mettre à jour le timestamp du canal
+    await prisma.chatChannel.update({
+      where: { id: channelId },
+      data: { updatedAt: new Date() },
+    });
+
+    return NextResponse.json(message, { status: 201 });
+  } catch (error) {
+    console.error("Erreur POST /api/chat/channels/[id]/messages:", error);
+    return NextResponse.json(
+      { error: "Erreur lors de l'envoi du message" },
+      { status: 500 }
+    );
+  }
+}
