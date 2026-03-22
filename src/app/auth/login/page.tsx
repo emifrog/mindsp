@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -39,37 +40,23 @@ function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      // 1. Récupérer le token CSRF
-      const csrfRes = await fetch("/api/auth/csrf");
-      const { csrfToken } = await csrfRes.json();
-
-      // 2. Envoyer les credentials directement (contourne le bug signIn() v5 beta)
-      await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          csrfToken,
-          email,
-          password,
-          tenantSlug,
-        }),
-        redirect: "follow",
+      const result = await signIn("credentials", {
+        email,
+        password,
+        tenantSlug,
+        redirect: false,
       });
 
-      // 3. Vérifier que la session a été créée
-      const sessionRes = await fetch("/api/auth/session");
-      const session = await sessionRes.json();
-
-      if (session?.user) {
+      if (result?.error) {
+        toast({
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        });
+      } else {
         window.location.href = callbackUrl || "/";
         return;
       }
-
-      toast({
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
-        variant: "destructive",
-      });
     } catch (error) {
       toast({
         title: "Erreur",
