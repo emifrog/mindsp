@@ -30,10 +30,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  // Obtenir le token JWT
+  // Obtenir le token JWT (NextAuth v5 utilise le préfixe "authjs")
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
+    cookieName: process.env.NODE_ENV === "production"
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token",
   });
 
   // Rediriger vers login si non authentifié et route protégée
