@@ -14,7 +14,7 @@ export function ChatLayout() {
   const [selectedChannel, setSelectedChannel] = useState<ChatChannel | null>(
     null
   );
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background">

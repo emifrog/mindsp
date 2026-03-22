@@ -65,7 +65,7 @@ export function Header() {
           <span className="sr-only">Toggle sidebar</span>
         </Button>
 
-        <h1 className="text-lg font-semibold">Tableau de bord</h1>
+        {/*<h1 className="text-lg font-semibold">Tableau de bord</h1>*/}
       </div>
 
       <div className="flex items-center gap-4">
