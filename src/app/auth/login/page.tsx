@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -39,56 +40,42 @@ function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      // Appel direct à l'API NextAuth pour contourner le bug signIn() v5 beta
-      const csrfRes = await fetch("/api/auth/csrf");
-      const { csrfToken } = await csrfRes.json();
-
-      const res = await fetch("/api/auth/callback/credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          csrfToken,
-          email,
-          password,
-          tenantSlug,
-          callbackUrl: callbackUrl || "/",
-        }),
-        redirect: "manual",
+      const result = await signIn("credentials", {
+        email,
+        password,
+        tenantSlug,
+        redirect: false,
       });
 
-      // Status 200 = erreur d'auth (page HTML renvoyée)
-      // Status 302 = succès (redirection vers callbackUrl)
-      if (res.status === 200) {
-        // Vérifier si la réponse contient une erreur
-        const url = res.url || "";
-        if (url.includes("error=")) {
-          toast({
-            title: "Erreur de connexion",
-            description: "Email ou mot de passe incorrect",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erreur de connexion",
-            description: "Email ou mot de passe incorrect",
-            variant: "destructive",
-          });
+      console.log("signIn result:", JSON.stringify(result));
+
+      if (!result) {
+        // NextAuth v5 beta peut retourner undefined — vérifier la session
+        const sessionRes = await fetch("/api/auth/session");
+        const session = await sessionRes.json();
+
+        if (session?.user) {
+          window.location.href = callbackUrl || "/";
+          return;
         }
-      } else if (res.type === "opaqueredirect" || res.status === 302 || res.status === 0) {
-        // Succès — redirection
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue sur MindSP !",
-        });
-        window.location.href = callbackUrl || "/";
-      } else {
+
         toast({
           title: "Erreur de connexion",
           description: "Email ou mot de passe incorrect",
           variant: "destructive",
         });
+      } else if (result.error) {
+        toast({
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        });
+      } else {
+        window.location.href = callbackUrl || "/";
+        return;
       }
     } catch (error) {
+      console.error("signIn error:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la connexion",
