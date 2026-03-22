@@ -39,6 +39,9 @@ function LoginForm() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    console.log("=== FORM SUBMITTED ===", { email, tenantSlug });
+    alert(`Tentative de connexion: ${email} / ${tenantSlug}`);
+
     try {
       const result = await signIn("credentials", {
         email,
