@@ -71,6 +71,8 @@
     "react-textarea-autosize": "^8.5.9",
     "redis": "^4.7.0",
     "resend": "^6.9.4",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "swr": "^2.4.1",
     "tailwind-merge": "^2.6.0",
     "uploadthing": "^7.7.4",

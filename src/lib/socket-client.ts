@@ -1,4 +1,3 @@
-// @ts-expect-error socket.io-client optional
 import { io, Socket } from "socket.io-client";
 import type { SocketEvents } from "@/types/chat";
 
