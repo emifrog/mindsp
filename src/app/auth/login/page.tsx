@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -41,33 +39,49 @@ function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        tenantSlug,
-        redirect: false,
-        callbackUrl,
+      // Appel direct à l'API NextAuth pour contourner le bug signIn() v5 beta
+      const csrfRes = await fetch("/api/auth/csrf");
+      const { csrfToken } = await csrfRes.json();
+
+      const res = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrfToken,
+          email,
+          password,
+          tenantSlug,
+          callbackUrl: callbackUrl || "/",
+        }),
+        redirect: "manual",
       });
 
-      if (result?.error) {
-        const errorMessages: Record<string, string> = {
-          CredentialsSignin: "Email ou mot de passe incorrect",
-          Configuration: "Erreur de configuration du serveur",
-        };
-        toast({
-          title: "Erreur de connexion",
-          description: errorMessages[result.error] || "Email ou mot de passe incorrect",
-          variant: "destructive",
-        });
-      } else if (result?.ok) {
+      // Status 200 = erreur d'auth (page HTML renvoyée)
+      // Status 302 = succès (redirection vers callbackUrl)
+      if (res.status === 200) {
+        // Vérifier si la réponse contient une erreur
+        const url = res.url || "";
+        if (url.includes("error=")) {
+          toast({
+            title: "Erreur de connexion",
+            description: "Email ou mot de passe incorrect",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erreur de connexion",
+            description: "Email ou mot de passe incorrect",
+            variant: "destructive",
+          });
+        }
+      } else if (res.type === "opaqueredirect" || res.status === 302 || res.status === 0) {
+        // Succès — redirection
         toast({
           title: "Connexion réussie",
           description: "Bienvenue sur MindSP !",
         });
-        // Forcer la redirection via window.location pour éviter les problèmes de cache router
-        window.location.href = result.url || callbackUrl || "/";
+        window.location.href = callbackUrl || "/";
       } else {
-        // Cas où result n'a ni error ni ok (NextAuth v5 beta edge case)
         toast({
           title: "Erreur de connexion",
           description: "Email ou mot de passe incorrect",
