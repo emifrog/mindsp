@@ -104,7 +104,6 @@ export default function AgendaPage() {
   const handleDayClick = (date: Date) => {
     // TODO: Ouvrir dialog de création avec date pré-remplie
     // eslint-disable-next-line no-console
-    console.log("Date clicked:", date);
   };
 
   const handleNewEvent = () => {
