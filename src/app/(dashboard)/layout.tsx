@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { AIAssistantWidget } from "@/components/ai/AIAssistantWidget";
 
 export default function DashboardLayout({
   children,
@@ -23,6 +24,7 @@ export default function DashboardLayout({
         </div>
         <Toaster />
         <OnboardingWizard />
+        <AIAssistantWidget />
       </div>
     </SidebarProvider>
   );

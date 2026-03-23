@@ -21,7 +21,8 @@ const navigation = [
   { name: "Portails", href: "/portails", icon: "🚪" },
   { name: "Actualités", href: "/actualites", icon: Icons.info.info },
   { name: "Documents", href: "/documents", icon: Icons.nav.documents },
-  { name: "Design", href: "/showcase", icon: "🎨" },
+  { name: "Recherche", href: "/search", icon: "🔍" },
+  { name: "Assistant IA", href: "/assistant", icon: "✨" },
   { name: "Paramètres", href: "/settings/notifications", icon: Icons.nav.settings },
 ];
 
@@ -84,8 +85,7 @@ function SidebarContent({ collapsed, onNavClick }: { collapsed: boolean; onNavCl
       {!collapsed && (
         <div className="border-t p-4">
           <div className="text-xs text-muted-foreground">
-            <p>Version 1.0.0</p>
-            <p>A venir : Phase 7 - CI/CD & DevOps</p>
+            <p>MindSP v2.2.0</p>
           </div>
         </div>
       )}

@@ -51,7 +51,8 @@ model Tenant {
   agendaEvents AgendaEvent[] @relation("AgendaEvents")
   mailingLists MailingList[] @relation("MailingLists")
   personnelFiles PersonnelFile[]
-  
+  aiConversations AIConversation[]
+
   @@index([slug])
   @@index([domain])
   @@map("tenants")
@@ -170,7 +171,10 @@ model User {
   
   // Settings
   settings UserSettings?
-  
+
+  // IA
+  aiConversations AIConversation[]
+
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([email])
@@ -2249,3 +2253,38 @@ enum PersonnelDocumentType {
   AUTRE
 }
 
+
+// ═══════════════════════════════════════════
+// Module IA — Assistant interne
+// ═══════════════════════════════════════════
+
+model AIConversation {
+  id        String      @id @default(uuid())
+  userId    String
+  tenantId  String
+  title     String?
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages  AIMessage[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([tenantId])
+}
+
+model AIMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  role           String         // "user" | "assistant"
+  content        String         @db.Text
+  tokensUsed     Int            @default(0)
+
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
+}
