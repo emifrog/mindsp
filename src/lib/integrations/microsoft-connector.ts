@@ -171,7 +171,7 @@ export class Microsoft365Connector {
       try {
         // Vérifier si déjà importé via externalId
         const existing = await prisma.mailMessage.findFirst({
-          where: { tenantId, externalId: mail.id },
+          where: { tenantId, externalId: mail.id } as any,
         });
 
         if (existing) {
@@ -190,7 +190,7 @@ export class Microsoft365Connector {
             externalId: mail.id,
             externalSource: "OUTLOOK",
             createdAt: new Date(mail.receivedDateTime),
-          },
+          } as any,
         });
 
         // Créer les destinataires
@@ -274,7 +274,7 @@ export class Microsoft365Connector {
     for (const event of result.value) {
       try {
         const existing = await prisma.calendarEvent.findFirst({
-          where: { tenantId, externalId: event.id, externalSource: "OUTLOOK" },
+          where: { tenantId, externalId: event.id, externalSource: "OUTLOOK" } as any,
         });
 
         if (existing) {
@@ -306,11 +306,11 @@ export class Microsoft365Connector {
             startDate: new Date(event.start.dateTime),
             endDate: new Date(event.end.dateTime),
             allDay: event.isAllDay,
-            type,
+            type: type as any,
             createdBy: user.id,
             externalId: event.id,
             externalSource: "OUTLOOK",
-          },
+          } as any,
         });
 
         created++;
@@ -530,7 +530,7 @@ export class Microsoft365Connector {
 
       try {
         const existing = await prisma.portalDocument.findFirst({
-          where: { tenantId, externalId: file.id },
+          where: { tenantId, externalId: file.id } as any,
         });
 
         if (existing) {
@@ -550,7 +550,7 @@ export class Microsoft365Connector {
             uploadedById: user.id,
             externalId: file.id,
             externalSource: "ONEDRIVE",
-          },
+          } as any,
         });
 
         created++;

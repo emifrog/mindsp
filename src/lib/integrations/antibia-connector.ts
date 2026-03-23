@@ -74,7 +74,7 @@ export class AntibiaConnector extends BaseConnector {
             tenantId,
             externalId: intervention.id,
             externalSource: "ANTIBIA",
-          },
+          } as any,
         });
 
         if (existingEvent) {
@@ -121,7 +121,7 @@ export class AntibiaConnector extends BaseConnector {
             createdBy: creatorId,
             externalId: intervention.id,
             externalSource: "ANTIBIA",
-          },
+          } as any,
         });
 
         // Creer les entrees TTA pour chaque agent
@@ -146,7 +146,7 @@ export class AntibiaConnector extends BaseConnector {
               status: "VALIDATED",
               validatedById: creatorId,
               validatedAt: new Date(),
-            },
+            } as any,
           });
         }
 
@@ -222,7 +222,7 @@ export class AntibiaConnector extends BaseConnector {
             duration: dureeHeures,
             description: `${garde.type} - ${garde.centreSecours}`,
             status: "VALIDATED",
-          },
+          } as any,
         });
 
         created++;

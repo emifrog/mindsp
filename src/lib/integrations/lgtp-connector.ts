@@ -104,7 +104,7 @@ export class LGTPConnector extends BaseConnector {
                 duration: entry.duree,
                 description: entry.commentaire || `${entry.type} ${entry.heureDebut}-${entry.heureFin}`,
                 status: entry.valide ? "VALIDATED" : "PENDING",
-              },
+              } as any,
             });
             updated++;
           } else {
@@ -124,7 +124,7 @@ export class LGTPConnector extends BaseConnector {
             duration: entry.duree,
             description: entry.commentaire || `${entry.type} ${entry.heureDebut}-${entry.heureFin}`,
             status: entry.valide ? "VALIDATED" : "PENDING",
-          },
+          } as any,
         });
 
         created++;
@@ -207,7 +207,7 @@ export class LGTPConnector extends BaseConnector {
               duration: defaultDurations[activityType] || 8,
               description: `Planning ${typeActivite} - ${planning.centreSecours}`,
               status: "PENDING",
-            },
+            } as any,
           });
 
           created++;
@@ -264,7 +264,7 @@ export class LGTPConnector extends BaseConnector {
           continue;
         }
 
-        const metadata = (file.metadata as Record<string, unknown>) || {};
+        const metadata = ((file as any).metadata as Record<string, unknown>) || {};
         metadata.lgtp_compteurs = {
           annee: compteur.annee,
           heuresGarde: compteur.heuresGarde,
@@ -278,7 +278,7 @@ export class LGTPConnector extends BaseConnector {
 
         await prisma.personnelFile.update({
           where: { id: file.id },
-          data: { metadata: metadata as any },
+          data: { metadata: metadata } as any,
         });
 
         updated++;
