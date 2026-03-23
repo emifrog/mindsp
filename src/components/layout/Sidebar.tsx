@@ -7,7 +7,8 @@ import { Icon } from "@/components/ui/icon";
 import { Icons } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: Icons.nav.dashboard },
@@ -21,7 +22,7 @@ const navigation = [
   { name: "Portails", href: "/portails", icon: "🚪" },
   { name: "Actualités", href: "/actualites", icon: Icons.info.info },
   { name: "Documents", href: "/documents", icon: Icons.nav.documents },
-  { name: "Recherche", href: "/search", icon: "🔍" },
+  /*{ name: "Recherche", href: "/search", icon: "🔍" },*/
   { name: "Assistant IA", href: "/assistant", icon: "✨" },
   { name: "Paramètres", href: "/settings/notifications", icon: Icons.nav.settings },
 ];
@@ -111,6 +112,9 @@ export function Sidebar() {
       {/* Sidebar mobile - Sheet overlay */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetContent side="left" className="w-64 p-0">
+          <VisuallyHidden>
+            <SheetTitle>Navigation</SheetTitle>
+          </VisuallyHidden>
           <SidebarContent
             collapsed={false}
             onNavClick={() => setIsMobileOpen(false)}
