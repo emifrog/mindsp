@@ -270,6 +270,112 @@ Ajouter un cron job (Vercel Cron ou externe) :
 
 ---
 
+---
+
+### 3. Microsoft 365 — Outlook, Teams, OneDrive, Azure AD
+
+**API** : Microsoft Graph API v1.0
+**Usage** : Synchronisation avec l'écosystème Microsoft du SDIS
+**Package** : `@microsoft/microsoft-graph-client`, `@azure/identity`
+
+#### Données synchronisées
+
+| Microsoft 365 | → MindSP | Méthode |
+|---|---|---|
+| Outlook Mail | MailMessage | `syncMails()` |
+| Outlook Calendar | CalendarEvent | `syncCalendar()` |
+| Teams Messages | → Canal Teams | `sendTeamsMessage()`, `sendTeamsAlert()` |
+| OneDrive Files | PortalDocument | `syncDocuments()` |
+| Azure AD Users | User | `syncUsers()` |
+
+#### Fonctionnalités
+
+| Méthode | Direction | Permission Graph API |
+|---|---|---|
+| `syncMails()` | Outlook → MindSP | `Mail.Read` |
+| `sendMail()` | MindSP → Outlook | `Mail.Send` |
+| `syncCalendar()` | Outlook → MindSP | `Calendars.Read` |
+| `createCalendarEvent()` | MindSP → Outlook | `Calendars.ReadWrite` |
+| `pushEventToOutlook()` | FMPA/Formation → Outlook participants | `Calendars.ReadWrite` |
+| `sendTeamsMessage()` | MindSP → Teams | `ChannelMessage.Send` |
+| `sendTeamsAlert()` | Alerte MindSP → Teams | `ChannelMessage.Send` |
+| `listFiles()` | Lister OneDrive | `Files.Read.All` |
+| `syncDocuments()` | OneDrive → MindSP | `Files.Read.All` |
+| `syncUsers()` | Azure AD → MindSP | `User.Read.All` |
+
+#### Usage
+
+```typescript
+import { createMicrosoft365Connector } from "@/lib/integrations";
+
+const ms365 = createMicrosoft365Connector();
+
+// Tester la connexion
+const ok = await ms365.testConnection();
+
+// Synchroniser les mails d'un agent
+await ms365.syncMails(tenantId, "jean.dupont@sdis06.fr", {
+  since: new Date("2026-03-01"),
+});
+
+// Synchroniser le calendrier Outlook
+await ms365.syncCalendar(tenantId, "jean.dupont@sdis06.fr", {
+  from: new Date(),
+  to: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+});
+
+// Pousser un FMPA vers Outlook Calendar des participants
+await ms365.pushEventToOutlook(
+  tenantId,
+  "Manœuvre incendie",
+  "Exercice extinction feux de forêts",
+  "Plateau technique SDIS06",
+  new Date("2026-04-01T09:00:00"),
+  new Date("2026-04-01T17:00:00"),
+  ["agent1@sdis06.fr", "agent2@sdis06.fr"]
+);
+
+// Envoyer une alerte dans Teams
+await ms365.sendTeamsAlert(teamId, channelId, {
+  type: "FMPA",
+  title: "Manœuvre incendie - Demain 9h00",
+  message: "12 inscrits - Plateau technique SDIS06",
+  linkUrl: "/fmpa/abc-123",
+});
+
+// Synchroniser les utilisateurs Azure AD
+await ms365.syncUsers(tenantId, { department: "SPV" });
+
+// Importer les documents OneDrive
+await ms365.syncDocuments(tenantId, "admin@sdis06.fr", "/root:/SDIS:/children");
+```
+
+#### Variables d'environnement
+
+```env
+MS365_TENANT_ID=votre-azure-tenant-id
+MS365_CLIENT_ID=votre-app-client-id
+MS365_CLIENT_SECRET=votre-app-client-secret
+```
+
+#### Mise en place Azure
+
+1. Aller sur [portal.azure.com](https://portal.azure.com) → Azure Active Directory
+2. **App registrations** → New registration
+   - Nom : "MindSP SDIS"
+   - Type : "Accounts in this organizational directory only"
+3. **Certificates & secrets** → New client secret → copier la valeur
+4. **API permissions** → Add permission → Microsoft Graph :
+   - `Mail.Read`, `Mail.Send`
+   - `Calendars.Read`, `Calendars.ReadWrite`
+   - `ChannelMessage.Send`
+   - `Files.Read.All`
+   - `User.Read.All`
+5. **Grant admin consent** (un admin Azure AD doit approuver)
+6. Copier le **Tenant ID**, **Client ID**, **Client Secret** dans les variables d'environnement
+
+---
+
 ## Créer un nouveau connecteur
 
 Pour intégrer un autre logiciel SDIS :
