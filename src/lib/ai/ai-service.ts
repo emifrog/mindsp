@@ -36,7 +36,7 @@ function getClient(): OpenAI {
   return _client;
 }
 
-const MODEL = process.env.AI_MODEL || "mistralai/mistral-small-3.1-24b-instruct:free";
+const MODEL = process.env.AI_MODEL || "deepseek/deepseek-chat-v3-0324:free";
 const MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || "4096");
 
 export interface ChatMessage {
