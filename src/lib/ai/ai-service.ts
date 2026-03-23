@@ -36,7 +36,7 @@ function getClient(): OpenAI {
   return _client;
 }
 
-const MODEL = process.env.AI_MODEL || "google/gemini-2.5-flash-preview";
+const MODEL = process.env.AI_MODEL || "google/gemma-3-27b-it:free";
 const MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || "4096");
 
 export interface ChatMessage {
